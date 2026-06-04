@@ -12,20 +12,20 @@ import (
 	"github.com/matthewmcneely/modusgraph/typed/filter"
 
 	"github.com/mlwelles/modusgraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies/schema"
-	mgentity "github.com/mlwelles/modusgraph-gen/entity"
+	"github.com/mlwelles/modusgraph-gen/wrap"
 )
 
 // ContentRating wraps a schema.ContentRating and exposes its data through methods.
-// It embeds mgentity.Wrapper, which supplies Unwrap, JSON marshaling, and
+// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
 // validation; the backing schema struct is reachable only via Unwrap().
 type ContentRating struct {
-	mgentity.Wrapper[schema.ContentRating]
+	wrap.Wrapper[schema.ContentRating]
 }
 
 // NewContentRating constructs a ContentRating with a fresh, empty schema struct, then
 // applies the given options.
 func NewContentRating(opts ...typed.Option[ContentRating]) *ContentRating {
-	e := &ContentRating{Wrapper: mgentity.WrapValue(&schema.ContentRating{})}
+	e := &ContentRating{Wrapper: wrap.WrapValue(&schema.ContentRating{})}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -34,7 +34,7 @@ func NewContentRating(opts ...typed.Option[ContentRating]) *ContentRating {
 // applies the given options. The wrapper holds s directly — no defensive
 // copy, so setters mutate the caller's struct.
 func WrapContentRating(s *schema.ContentRating, opts ...typed.Option[ContentRating]) *ContentRating {
-	e := &ContentRating{Wrapper: mgentity.WrapValue(s)}
+	e := &ContentRating{Wrapper: wrap.WrapValue(s)}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -62,7 +62,7 @@ func (e *ContentRating) SetName(v string) { e.Unwrap().Name = v }
 func (e *ContentRating) Films() []*Film {
 	out := make([]*Film, len(e.Unwrap().Films))
 	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: mgentity.WrapValue(x)}
+		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
 	}
 	return out
 }
@@ -72,7 +72,7 @@ func (e *ContentRating) Films() []*Film {
 func (e *ContentRating) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
 		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: mgentity.WrapValue(x)}) {
+			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
 				return
 			}
 		}

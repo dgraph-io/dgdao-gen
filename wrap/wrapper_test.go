@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package entity_test
+package wrap_test
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/matthewmcneely/modusgraph"
-	"github.com/mlwelles/modusgraph-gen/entity"
+	"github.com/mlwelles/modusgraph-gen/wrap"
 )
 
 // widget is a minimal schema struct used to exercise the entity wrapper.
@@ -24,20 +24,20 @@ type widget struct {
 
 func TestWrapper_UnwrapReturnsBackingPointer(t *testing.T) {
 	backing := &widget{Name: "inner"}
-	w := entity.WrapValue(backing)
+	w := wrap.WrapValue(backing)
 	if w.Unwrap() != backing {
 		t.Fatal("Unwrap did not return the same backing pointer")
 	}
 }
 
 func TestWrapper_JSONRoundTrip(t *testing.T) {
-	w := entity.WrapValue(&widget{Name: "j", Qty: 5})
+	w := wrap.WrapValue(&widget{Name: "j", Qty: 5})
 	data, err := json.Marshal(&w)
 	if err != nil {
 		t.Fatalf("Marshal: %v", err)
 	}
 
-	var got entity.Wrapper[widget]
+	var got wrap.Wrapper[widget]
 	if err := json.Unmarshal(data, &got); err != nil {
 		t.Fatalf("Unmarshal: %v", err)
 	}
@@ -48,7 +48,7 @@ func TestWrapper_JSONRoundTrip(t *testing.T) {
 
 func TestWrapper_UnmarshalIntoZeroValue(t *testing.T) {
 	// UnmarshalJSON must lazily allocate the backing struct.
-	var w entity.Wrapper[widget]
+	var w wrap.Wrapper[widget]
 	if err := json.Unmarshal([]byte(`{"name":"z"}`), &w); err != nil {
 		t.Fatalf("Unmarshal into zero value: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestWrapper_UnmarshalIntoZeroValue(t *testing.T) {
 }
 
 func TestWrapper_Validate(t *testing.T) {
-	w := entity.WrapValue(&widget{Name: "v"})
+	w := wrap.WrapValue(&widget{Name: "v"})
 	if err := w.Validate(context.Background(), modusgraph.NewValidator()); err != nil {
 		t.Fatalf("Validate on a tag-free struct should pass; got %v", err)
 	}
@@ -69,7 +69,7 @@ func TestWrapper_Validate(t *testing.T) {
 // *Entity must satisfy json.Marshaler and json.Unmarshaler via promotion of
 // Wrapper's pointer-receiver methods.
 type embedTestEntity struct {
-	entity.Wrapper[widget]
+	wrap.Wrapper[widget]
 }
 
 var (

@@ -12,20 +12,20 @@ import (
 	"github.com/matthewmcneely/modusgraph/typed/filter"
 
 	"github.com/mlwelles/modusgraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies/schema"
-	mgentity "github.com/mlwelles/modusgraph-gen/entity"
+	"github.com/mlwelles/modusgraph-gen/wrap"
 )
 
 // Country wraps a schema.Country and exposes its data through methods.
-// It embeds mgentity.Wrapper, which supplies Unwrap, JSON marshaling, and
+// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
 // validation; the backing schema struct is reachable only via Unwrap().
 type Country struct {
-	mgentity.Wrapper[schema.Country]
+	wrap.Wrapper[schema.Country]
 }
 
 // NewCountry constructs a Country with a fresh, empty schema struct, then
 // applies the given options.
 func NewCountry(opts ...typed.Option[Country]) *Country {
-	e := &Country{Wrapper: mgentity.WrapValue(&schema.Country{})}
+	e := &Country{Wrapper: wrap.WrapValue(&schema.Country{})}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -34,7 +34,7 @@ func NewCountry(opts ...typed.Option[Country]) *Country {
 // applies the given options. The wrapper holds s directly — no defensive
 // copy, so setters mutate the caller's struct.
 func WrapCountry(s *schema.Country, opts ...typed.Option[Country]) *Country {
-	e := &Country{Wrapper: mgentity.WrapValue(s)}
+	e := &Country{Wrapper: wrap.WrapValue(s)}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -62,7 +62,7 @@ func (e *Country) SetName(v string) { e.Unwrap().Name = v }
 func (e *Country) Films() []*Film {
 	out := make([]*Film, len(e.Unwrap().Films))
 	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: mgentity.WrapValue(x)}
+		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
 	}
 	return out
 }
@@ -72,7 +72,7 @@ func (e *Country) Films() []*Film {
 func (e *Country) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
 		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: mgentity.WrapValue(x)}) {
+			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
 				return
 			}
 		}

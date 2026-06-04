@@ -12,20 +12,20 @@ import (
 	"github.com/matthewmcneely/modusgraph/typed/filter"
 
 	"github.com/mlwelles/modusgraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies/schema"
-	mgentity "github.com/mlwelles/modusgraph-gen/entity"
+	"github.com/mlwelles/modusgraph-gen/wrap"
 )
 
 // Actor wraps a schema.Actor and exposes its data through methods.
-// It embeds mgentity.Wrapper, which supplies Unwrap, JSON marshaling, and
+// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
 // validation; the backing schema struct is reachable only via Unwrap().
 type Actor struct {
-	mgentity.Wrapper[schema.Actor]
+	wrap.Wrapper[schema.Actor]
 }
 
 // NewActor constructs a Actor with a fresh, empty schema struct, then
 // applies the given options.
 func NewActor(opts ...typed.Option[Actor]) *Actor {
-	e := &Actor{Wrapper: mgentity.WrapValue(&schema.Actor{})}
+	e := &Actor{Wrapper: wrap.WrapValue(&schema.Actor{})}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -34,7 +34,7 @@ func NewActor(opts ...typed.Option[Actor]) *Actor {
 // applies the given options. The wrapper holds s directly — no defensive
 // copy, so setters mutate the caller's struct.
 func WrapActor(s *schema.Actor, opts ...typed.Option[Actor]) *Actor {
-	e := &Actor{Wrapper: mgentity.WrapValue(s)}
+	e := &Actor{Wrapper: wrap.WrapValue(s)}
 	typed.Apply(e, opts...)
 	return e
 }
@@ -62,7 +62,7 @@ func (e *Actor) SetName(v string) { e.Unwrap().Name = v }
 func (e *Actor) Films() []*Performance {
 	out := make([]*Performance, len(e.Unwrap().Films))
 	for i, x := range e.Unwrap().Films {
-		out[i] = &Performance{Wrapper: mgentity.WrapValue(x)}
+		out[i] = &Performance{Wrapper: wrap.WrapValue(x)}
 	}
 	return out
 }
@@ -72,7 +72,7 @@ func (e *Actor) Films() []*Performance {
 func (e *Actor) FilmsSeq() iter.Seq[*Performance] {
 	return func(yield func(*Performance) bool) {
 		for _, x := range e.Unwrap().Films {
-			if !yield(&Performance{Wrapper: mgentity.WrapValue(x)}) {
+			if !yield(&Performance{Wrapper: wrap.WrapValue(x)}) {
 				return
 			}
 		}

@@ -29,7 +29,7 @@ func (e *{{ $E }}) {{ .Name }}() *{{ $bare }} {
 	if e.Unwrap().{{ .Name }} == nil {
 		return nil
 	}
-	return &{{ $bare }}{Wrapper: mgentity.WrapValue(e.Unwrap().{{ .Name }})}
+	return &{{ $bare }}{Wrapper: wrap.WrapValue(e.Unwrap().{{ .Name }})}
 }
 
 // Set{{ .Name }} sets or clears the {{ $bare }} edge.
@@ -48,7 +48,7 @@ func (e *{{ $E }}) Set{{ .Name }}(v *{{ $bare }}) {
 // {{ .Name }} returns a wrapper over the value-typed schema field. The wrapper
 // shares state with e — mutations are visible to e immediately.
 func (e *{{ $E }}) {{ .Name }}() *{{ $bare }} {
-	return &{{ $bare }}{Wrapper: mgentity.WrapValue(&e.Unwrap().{{ .Name }})}
+	return &{{ $bare }}{Wrapper: wrap.WrapValue(&e.Unwrap().{{ .Name }})}
 }
 
 // Set{{ .Name }} copies the value from v into the schema field. Note: this is
@@ -69,7 +69,7 @@ func (e *{{ $E }}) {{ .Name }}() *{{ $bare }} {
 	if len(e.Unwrap().{{ .Name }}) == 0 || e.Unwrap().{{ .Name }}[0] == nil {
 		return nil
 	}
-	return &{{ $bare }}{Wrapper: mgentity.WrapValue(e.Unwrap().{{ .Name }}[0])}
+	return &{{ $bare }}{Wrapper: wrap.WrapValue(e.Unwrap().{{ .Name }}[0])}
 }
 
 // Set{{ .Name }} replaces the singular-via-list edge with v, or clears it if nil.
@@ -90,7 +90,7 @@ func (e *{{ $E }}) Set{{ .Name }}(v *{{ $bare }}) {
 func (e *{{ $E }}) {{ .Name }}() []*{{ $bare }} {
 	out := make([]*{{ $bare }}, len(e.Unwrap().{{ .Name }}))
 	for i, x := range e.Unwrap().{{ .Name }} {
-		out[i] = &{{ $bare }}{Wrapper: mgentity.WrapValue(x)}
+		out[i] = &{{ $bare }}{Wrapper: wrap.WrapValue(x)}
 	}
 	return out
 }
@@ -100,7 +100,7 @@ func (e *{{ $E }}) {{ .Name }}() []*{{ $bare }} {
 func (e *{{ $E }}) {{ .Name }}Seq() iter.Seq[*{{ $bare }}] {
 	return func(yield func(*{{ $bare }}) bool) {
 		for _, x := range e.Unwrap().{{ .Name }} {
-			if !yield(&{{ $bare }}{Wrapper: mgentity.WrapValue(x)}) {
+			if !yield(&{{ $bare }}{Wrapper: wrap.WrapValue(x)}) {
 				return
 			}
 		}

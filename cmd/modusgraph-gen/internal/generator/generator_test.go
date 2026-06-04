@@ -834,7 +834,7 @@ type Studio struct {
 	for _, want := range []string{
 		`func (e *Studio) Founder() *Director {`,
 		`if e.Unwrap().Founder == nil {`,
-		`return &Director{Wrapper: mgentity.WrapValue(e.Unwrap().Founder)}`,
+		`return &Director{Wrapper: wrap.WrapValue(e.Unwrap().Founder)}`,
 		`func (e *Studio) SetFounder(v *Director)`,
 	} {
 		if !strings.Contains(data, want) {
@@ -844,7 +844,7 @@ type Studio struct {
 	// Value-singular edge
 	for _, want := range []string{
 		`func (e *Studio) Headquarters() *Country {`,
-		`return &Country{Wrapper: mgentity.WrapValue(&e.Unwrap().Headquarters)}`,
+		`return &Country{Wrapper: wrap.WrapValue(&e.Unwrap().Headquarters)}`,
 		`func (e *Studio) SetHeadquarters(v *Country)`,
 		`e.Unwrap().Headquarters = *v.Unwrap()`,
 	} {
@@ -916,15 +916,13 @@ func TestGenerate_EntityWrapperStruct(t *testing.T) {
 		`package entity`,
 		`"example.com/test"`,
 		`"github.com/matthewmcneely/modusgraph/typed"`,
-		// Wrapper base imported from modusgraph-gen, aliased to avoid colliding
-		// with this generated file's own `entity` package name.
-		`mgentity "github.com/mlwelles/modusgraph-gen/entity"`,
+		`"github.com/mlwelles/modusgraph-gen/wrap"`,
 		`type Studio struct {`,
-		`mgentity.Wrapper[schema.Studio]`,
+		`wrap.Wrapper[schema.Studio]`,
 		`func NewStudio(opts ...typed.Option[Studio]) *Studio {`,
 		`func WrapStudio(s *schema.Studio, opts ...typed.Option[Studio]) *Studio {`,
-		`mgentity.WrapValue(&schema.Studio{})`,
-		`mgentity.WrapValue(s)`,
+		`wrap.WrapValue(&schema.Studio{})`,
+		`wrap.WrapValue(s)`,
 		`typed.Apply(e, opts...)`,
 		`func (e *Studio) UID() string { return e.Unwrap().UID }`,
 		`func (e *Studio) SetUID(v string)`,
@@ -937,7 +935,7 @@ func TestGenerate_EntityWrapperStruct(t *testing.T) {
 	}
 
 	// Negative: Unwrap/Marshal/Unmarshal/Validate are inherited from
-	// mgentity.Wrapper and MUST NOT be re-emitted by any fragment. (The client
+	// wrap.Wrapper and MUST NOT be re-emitted by any fragment. (The client
 	// type IS legitimately present in the merged file via the client fragment;
 	// it's covered by TestGenerate_WrapperEntityClient.)
 	for _, notWant := range []string{
@@ -947,7 +945,7 @@ func TestGenerate_EntityWrapperStruct(t *testing.T) {
 		`func (e *Studio) Validate(`,
 	} {
 		if strings.Contains(data, notWant) {
-			t.Errorf("studio_gen.go must NOT include %q (provided by mgentity.Wrapper)", notWant)
+			t.Errorf("studio_gen.go must NOT include %q (provided by wrap.Wrapper)", notWant)
 		}
 	}
 }

@@ -39,13 +39,12 @@ Add a `go:generate` directive next to your schema structs:
 then run `go generate ./...`.
 
 Generated code imports the generic primitives from `modusgraph/typed` and the wrapper
-base from `modusgraph-gen/entity` (aliased to avoid a package-name collision in
-projects whose own package is `entity`):
+base from `modusgraph-gen/wrap`:
 
 ```go
 import (
     "github.com/matthewmcneely/modusgraph/typed"
-    mgentity "github.com/mlwelles/modusgraph-gen/entity"
+    "github.com/mlwelles/modusgraph-gen/wrap"
 )
 ```
 

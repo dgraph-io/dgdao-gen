@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-06-04
+
+### Changed
+
+- Rename the wrapper-base package `entity` → `wrap`, so generated code imports it
+  unaliased (`wrap.Wrapper`, `wrap.WrapValue`). The former `entity` name required an
+  `mgentity` import alias to avoid colliding with a consumer's own `entity` package.
+
 ## [0.1.1] - 2026-06-04
 
 ### Fixed
