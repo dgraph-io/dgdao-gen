@@ -225,3 +225,20 @@ func (*Studio) SchemaPredicates() []string {
 // searchable field (the first field with a fulltext index), or empty string
 // if none. Used by tooling that needs a default search target.
 func (*Studio) SchemaSearchPredicate() string { return "" }
+
+// Models returns one zero value per schema entity type, for tooling that needs
+// the full type set (e.g. migrate scaffolding and verification).
+func Models() []any {
+	return []any{
+		&Actor{},
+		&ContentRating{},
+		&Country{},
+		&Director{},
+		&Film{},
+		&Genre{},
+		&Location{},
+		&Performance{},
+		&Rating{},
+		&Studio{},
+	}
+}
