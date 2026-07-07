@@ -9,7 +9,7 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/matthewmcneely/modusgraph"
+	"github.com/dgraph-io/dgdao"
 )
 
 // Wrapper is the generic base embedded by generated wrapper/entity types. It
@@ -26,7 +26,7 @@ func WrapValue[S any](s *S) Wrapper[S] {
 	return Wrapper[S]{s: s}
 }
 
-// Unwrap returns the backing schema struct. modusgraph uses this (via
+// Unwrap returns the backing schema struct. dgdao uses this (via
 // reflection) to substitute the schema struct when a wrapper crosses the
 // client boundary.
 func (w Wrapper[S]) Unwrap() *S {
@@ -53,6 +53,6 @@ func (w *Wrapper[S]) UnmarshalJSON(data []byte) error {
 
 // Validate runs v against the backing schema struct. v is satisfied by
 // *github.com/go-playground/validator/v10.Validate.
-func (w *Wrapper[S]) Validate(ctx context.Context, v modusgraph.StructValidator) error {
+func (w *Wrapper[S]) Validate(ctx context.Context, v dgdao.StructValidator) error {
 	return v.StructCtx(ctx, w.s)
 }

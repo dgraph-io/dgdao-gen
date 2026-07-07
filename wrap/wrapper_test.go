@@ -10,8 +10,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/matthewmcneely/modusgraph"
-	"github.com/mlwelles/modusGraph-gen/wrap"
+	"github.com/dgraph-io/dgdao"
+	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
 // widget is a minimal schema struct used to exercise the entity wrapper.
@@ -59,7 +59,7 @@ func TestWrapper_UnmarshalIntoZeroValue(t *testing.T) {
 
 func TestWrapper_Validate(t *testing.T) {
 	w := wrap.WrapValue(&widget{Name: "v"})
-	if err := w.Validate(context.Background(), modusgraph.NewValidator()); err != nil {
+	if err := w.Validate(context.Background(), dgdao.NewValidator()); err != nil {
 		t.Fatalf("Validate on a tag-free struct should pass; got %v", err)
 	}
 }

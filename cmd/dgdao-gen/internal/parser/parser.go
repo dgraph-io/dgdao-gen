@@ -14,7 +14,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/model"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/model"
 )
 
 // ParseOption configures a Parse call.

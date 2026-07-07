@@ -1,8 +1,8 @@
-module github.com/mlwelles/modusGraph-gen
+module github.com/dgraph-io/dgdao-gen
 
 go 1.26.4
 
-require github.com/matthewmcneely/modusgraph v0.0.0-00010101000000-000000000000
+require github.com/dgraph-io/dgdao v0.5.3-0.20260707184702-7f51c740c7a8
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect
@@ -147,5 +147,3 @@ require (
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/matthewmcneely/modusgraph => github.com/mlwelles/modusGraph v0.5.0-dev-mlwelles-20260701a

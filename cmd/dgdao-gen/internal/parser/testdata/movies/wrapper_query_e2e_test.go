@@ -1,14 +1,14 @@
 // Package movies_test provides end-to-end tests that exercise the generated
 // wrapper-side query builder (movies.FilmQuery) against a real, local
-// file-backed modusgraph client. The text-generation tests in the parser
+// file-backed dgdao client. The text-generation tests in the parser
 // suite prove the wrapper query code is emitted; these tests prove it
 // actually runs — that FilmClient.Query routes the fluent chain through
 // typed.Query, that terminals wrap their results, and that the wrapper layer
 // adds no extra round-trips. Like unwrap_e2e_test.go, this file lives inside
-// the testdata tree because the generated package imports modusgraph, which
+// the testdata tree because the generated package imports dgdao, which
 // would cause an import cycle from the root test package.
 //
-// None of these tests call t.Parallel(): the modusgraph engine is a strict
+// None of these tests call t.Parallel(): the dgdao engine is a strict
 // process-wide singleton (only one client may exist at a time), so the tests
 // must run sequentially. Each test gets its own t.TempDir()-backed client that
 // t.Cleanup closes before the next test starts.
@@ -20,28 +20,28 @@ import (
 	"testing"
 	"time"
 
+	dgdao "github.com/dgraph-io/dgdao"
+	movies "github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies"
+	moviesSchema "github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
+	"github.com/dgraph-io/dgdao/typed/filter"
 	"github.com/go-logr/logr/funcr"
-	modusgraph "github.com/matthewmcneely/modusgraph"
-	"github.com/matthewmcneely/modusgraph/typed/filter"
-	movies "github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies"
-	moviesSchema "github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies/schema"
 )
 
-// newConn builds a local file-backed modusgraph client for a test. Each call
+// newConn builds a local file-backed dgdao client for a test. Each call
 // uses a fresh t.TempDir(); the client is closed via t.Cleanup. Because the
-// modusgraph engine is a process-wide singleton, only one such client may be
+// dgdao engine is a process-wide singleton, only one such client may be
 // live at a time — tests using newConn must run sequentially (no t.Parallel).
-func newConn(t *testing.T) modusgraph.Client {
+func newConn(t *testing.T) dgdao.Client {
 	t.Helper()
-	conn, err := modusgraph.NewClient("file://"+t.TempDir(), modusgraph.WithAutoSchema(true))
+	conn, err := dgdao.NewClient("file://"+t.TempDir(), dgdao.WithAutoSchema(true))
 	if err != nil {
-		t.Fatalf("modusgraph.NewClient: %v", err)
+		t.Fatalf("dgdao.NewClient: %v", err)
 	}
 	t.Cleanup(conn.Close)
 	return conn
 }
 
-// newCountingConn builds a file-backed modusgraph client like newConn but
+// newCountingConn builds a file-backed dgdao client like newConn but
 // wires in a logr.Logger that counts dgman query executions. dgman logs every
 // executed query at verbosity 3 with the message "execute query"; the returned
 // *int is incremented once per such log line.
@@ -49,7 +49,7 @@ func newConn(t *testing.T) modusgraph.Client {
 // dgman's logger is process-global, so tests that use newCountingConn must NOT
 // call t.Parallel(): a parallel test sharing the global logger would corrupt
 // the count.
-func newCountingConn(t *testing.T, count *int) modusgraph.Client {
+func newCountingConn(t *testing.T, count *int) dgdao.Client {
 	t.Helper()
 	logger := funcr.New(func(_, args string) {
 		// funcr renders the message into args as `"msg"="execute query"`.
@@ -59,10 +59,10 @@ func newCountingConn(t *testing.T, count *int) modusgraph.Client {
 			*count++
 		}
 	}, funcr.Options{Verbosity: 3})
-	conn, err := modusgraph.NewClient("file://"+t.TempDir(),
-		modusgraph.WithAutoSchema(true), modusgraph.WithLogger(logger))
+	conn, err := dgdao.NewClient("file://"+t.TempDir(),
+		dgdao.WithAutoSchema(true), dgdao.WithLogger(logger))
 	if err != nil {
-		t.Fatalf("modusgraph.NewClient: %v", err)
+		t.Fatalf("dgdao.NewClient: %v", err)
 	}
 	t.Cleanup(conn.Close)
 	return conn

@@ -1,7 +1,7 @@
 // Package movies_test provides end-to-end tests that verify the generated
-// wrapper types (movies.*) integrate correctly with modusgraph.UnwrapSchema.
+// wrapper types (movies.*) integrate correctly with dgdao.UnwrapSchema.
 // These tests live here rather than in the root record_test.go because the
-// generated wrapper packages import modusgraph, which would cause an import
+// generated wrapper packages import dgdao, which would cause an import
 // cycle from the root test package. Placing the tests inside the testdata
 // tree satisfies Go's internal-package visibility rule.
 package movies_test
@@ -9,9 +9,9 @@ package movies_test
 import (
 	"testing"
 
-	modusgraph "github.com/matthewmcneely/modusgraph"
-	movies "github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies"
-	moviesSchema "github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser/testdata/movies/schema"
+	dgdao "github.com/dgraph-io/dgdao"
+	movies "github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies"
+	moviesSchema "github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
 )
 
 // TestUnwrapSchema_RealWrapperRoutesToSchema verifies the UnwrapSchema
@@ -21,7 +21,7 @@ func TestUnwrapSchema_RealWrapperRoutesToSchema(t *testing.T) {
 	s := &moviesSchema.Studio{Name: "Pixar"}
 	w := movies.WrapStudio(s)
 
-	out := modusgraph.UnwrapSchema(w)
+	out := dgdao.UnwrapSchema(w)
 	got, ok := out.(*moviesSchema.Studio)
 	if !ok {
 		t.Fatalf("expected *moviesSchema.Studio after unwrap, got %T", out)
@@ -36,17 +36,17 @@ func TestUnwrapSchema_RealWrapperRoutesToSchema(t *testing.T) {
 // generated SchemaTypeName method) passes through UnwrapSchema unchanged.
 func TestUnwrapSchema_RealSchemaPassthrough(t *testing.T) {
 	s := &moviesSchema.Studio{Name: "Pixar"}
-	out := modusgraph.UnwrapSchema(s)
+	out := dgdao.UnwrapSchema(s)
 	if out != any(s) {
 		t.Fatalf("expected schema struct to pass through unchanged; got %T", out)
 	}
 }
 
 // TestSchemaInterface_RealSchemaSatisfies verifies that the generated
-// schema struct satisfies the modusgraph.Schema interface via its
+// schema struct satisfies the dgdao.Schema interface via its
 // generated SchemaTypeName method.
 func TestSchemaInterface_RealSchemaSatisfies(t *testing.T) {
-	var _ modusgraph.Schema = (*moviesSchema.Studio)(nil)
+	var _ dgdao.Schema = (*moviesSchema.Studio)(nil)
 }
 
 // TestSchemaTypeName_RealSchemaReturnsCanonical verifies the generated
