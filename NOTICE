@@ -1,10 +1,10 @@
-modusgraph-gen
+dgdao-gen
 Copyright 2017-2026 Istari Digital, Inc.
 
-This product includes software developed as part of modusGraph
-(https://github.com/matthewmcneely/modusgraph), licensed under the Apache
+This product includes software developed as part of dgdao
+(https://github.com/dgraph-io/dgdao), licensed under the Apache
 License, Version 2.0.
 
 The code generator and the wrapper-entity runtime in this repository were
-extracted from a fork of modusGraph (https://github.com/mlwelles/modusGraph)
+extracted from dgdao (https://github.com/dgraph-io/dgdao)
 and retain their original copyright and license.

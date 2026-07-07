@@ -825,7 +825,7 @@ func TestReadModulePath(t *testing.T) {
 		}
 	})
 
-	t.Run("FromModusGraph", func(t *testing.T) {
+	t.Run("FromDgdao", func(t *testing.T) {
 		_, thisFile, _, _ := runtime.Caller(0)
 		dir := filepath.Dir(thisFile)
 		got := readModulePath(dir)

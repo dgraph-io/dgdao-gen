@@ -16,7 +16,7 @@ All notable changes to this project are documented here. The format follows
 ### Fixed
 
 - Restore the `Models()` aggregate in generated schema-marker files. The initial
-  extraction was taken from a fork checkout that predated the `Models()` feature, so
+  extraction was taken from an early checkout that predated the `Models()` feature, so
   v0.1.0 omitted it; migrate scaffolding and verification (`Provider.Models()`) depend
   on it.
 
@@ -24,9 +24,9 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- Initial extraction of the code generator (`cmd/modusgraph-gen`,
+- Initial extraction of the code generator (`cmd/dgdao-gen`,
   `internal/{generator,parser,model}`) and the wrapper-entity runtime (`entity`) from
-  the modusGraph fork (https://github.com/mlwelles/modusGraph).
+  dgdao (https://github.com/dgraph-io/dgdao).
 - Generated code splits its imports: the generic typed primitives resolve to
-  `matthewmcneely/modusgraph/typed`; the wrapper base resolves to
-  `mlwelles/modusGraph-gen/entity`, aliased as `mgentity`.
+  `dgraph-io/dgdao/typed`; the wrapper base resolves to
+  `dgraph-io/dgdao-gen/entity`, aliased as `mgentity`.

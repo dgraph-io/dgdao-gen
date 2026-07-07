@@ -4,21 +4,21 @@ import (
 	"context"
 
 	"github.com/dgraph-io/dgo/v250"
-	"github.com/matthewmcneely/modusgraph"
+	"github.com/dgraph-io/dgdao"
 )
 
-// Client is a top-level wrapper-side client. It holds a modusgraph.Client
+// Client is a top-level wrapper-side client. It holds a dgdao.Client
 // connection and exposes per-entity wrapper sub-clients that all share it.
 // Global operations are exposed directly as delegating methods.
 type Client struct {
-	conn modusgraph.Client
+	conn dgdao.Client
 {{- range .Entities }}
 	{{ .Name }} *{{ .Name }}Client
 {{- end }}
 }
 
 // NewClient binds conn to a wrapper-side Client.
-func NewClient(conn modusgraph.Client) *Client {
+func NewClient(conn dgdao.Client) *Client {
 	c := &Client{conn: conn}
 {{- range .Entities }}
 	c.{{ .Name }} = New{{ .Name }}Client(conn)
@@ -26,10 +26,10 @@ func NewClient(conn modusgraph.Client) *Client {
 	return c
 }
 
-// ModusGraphClient returns the underlying modusgraph.Client connection. Prefer
+// DgdaoClient returns the underlying dgdao.Client connection. Prefer
 // the delegating methods below; reach for this only for operations not
 // surfaced directly.
-func (c *Client) ModusGraphClient() modusgraph.Client { return c.conn }
+func (c *Client) DgdaoClient() dgdao.Client { return c.conn }
 
 // Close releases the underlying database connection.
 func (c *Client) Close() { c.conn.Close() }
@@ -66,6 +66,6 @@ func (c *Client) DgraphClient() (*dgo.Dgraph, func(), error) {
 }
 
 // WithRetry executes fn with retry on aborted transactions.
-func (c *Client) WithRetry(ctx context.Context, policy modusgraph.RetryPolicy, fn func() error) error {
+func (c *Client) WithRetry(ctx context.Context, policy dgdao.RetryPolicy, fn func() error) error {
 	return c.conn.WithRetry(ctx, policy, fn)
 }

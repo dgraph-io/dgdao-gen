@@ -9,7 +9,7 @@ type {{ $E }}Client struct {
 }
 
 // New{{ $E }}Client binds a {{ $E }}Client to conn.
-func New{{ $E }}Client(conn modusgraph.Client) *{{ $E }}Client {
+func New{{ $E }}Client(conn dgdao.Client) *{{ $E }}Client {
 	return &{{ $E }}Client{typed: typed.NewClient[{{ $sAlias }}.{{ $E }}](conn)}
 }
 

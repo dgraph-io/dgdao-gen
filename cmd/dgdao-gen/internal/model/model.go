@@ -6,7 +6,7 @@ package model
 // Package represents the fully parsed target package and all its entities.
 type Package struct {
 	Name             string            // Go package name, e.g. "movies"
-	ModulePath       string            // Full module path, e.g. "github.com/mlwelles/modusGraphMoviesProject"
+	ModulePath       string            // Full module path, e.g. "github.com/example/movies"
 	SchemaImportPath string            // Full Go import path for the schema pkg, e.g. "example.com/proj/movies/schema"
 	Imports          map[string]string // Package alias → import path, e.g. "enums" → "github.com/.../enums"
 	Entities         []Entity          // All detected entities (structs with UID + DType)
