@@ -3,7 +3,7 @@ package {{ .Name }}
 {{- range .Entities }}
 
 // SchemaTypeName returns the canonical entity name for {{ .Name }}.
-// This is the value modusgraph.Schema requires; it lets modusgraph.Client
+// This is the value dgdao.Schema requires; it lets dgdao.Client
 // recognize wrapper types via reflection-based Unwrap dispatch.
 func (*{{ .Name }}) SchemaTypeName() string { return {{ printf "%q" .Name }} }
 

@@ -16,7 +16,7 @@ import (
 {{- if .CLIEmitMain}}
 	"github.com/alecthomas/kong"
 {{- end}}
-	"github.com/matthewmcneely/modusgraph"
+	"github.com/dgraph-io/dgdao"
 	"{{.SchemaImportPath}}"
 {{range $cliExtImports}}
 	{{- if .Alias}}
@@ -50,7 +50,7 @@ type QueryCmd struct {
 	Timeout time.Duration `help:"Query timeout." default:"30s"`
 }
 
-func (c *QueryCmd) Run(conn modusgraph.Client) error {
+func (c *QueryCmd) Run(conn dgdao.Client) error {
 	query := c.Query
 	if query == "" {
 		// Read from stdin.
@@ -185,18 +185,18 @@ func (c *CLI) ConnectString() (string, error) {
 	return c.URL, nil
 }
 
-// NewClient opens a modusgraph client from the CLI's connection flags. Pass the
+// NewClient opens a dgdao client from the CLI's connection flags. Pass the
 // returned client (and the schema client built from it) to kong's Run so the
 // generated command bindings resolve. The caller owns Close.
-func (c *CLI) NewClient() (modusgraph.Client, error) {
+func (c *CLI) NewClient() (dgdao.Client, error) {
 	connStr, err := c.ConnectString()
 	if err != nil {
 		return nil, err
 	}
-	return modusgraph.NewClient(connStr,
-		modusgraph.WithAutoSchema(true),
+	return dgdao.NewClient(connStr,
+		dgdao.WithAutoSchema(true),
 {{- if .WithValidator}}
-		modusgraph.WithValidator(modusgraph.NewValidator()),
+		dgdao.WithValidator(dgdao.NewValidator()),
 {{- end}}
 	)
 }

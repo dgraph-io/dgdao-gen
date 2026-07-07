@@ -42,10 +42,10 @@ func NewClient(conn dgdao.Client) *Client {
 	return c
 }
 
-// ModusGraphClient returns the underlying dgdao.Client connection. Prefer
+// DgdaoClient returns the underlying dgdao.Client connection. Prefer
 // the delegating methods below; reach for this only for operations not
 // surfaced directly.
-func (c *Client) ModusGraphClient() dgdao.Client { return c.conn }
+func (c *Client) DgdaoClient() dgdao.Client { return c.conn }
 
 // Close releases the underlying database connection.
 func (c *Client) Close() { c.conn.Close() }

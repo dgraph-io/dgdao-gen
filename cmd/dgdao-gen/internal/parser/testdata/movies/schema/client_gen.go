@@ -15,75 +15,75 @@ import (
 // lifecycle) are exposed directly as delegating methods; per-entity CRUD lives
 // on the typed sub-clients.
 type Client struct {
-	// ModusGraphClient is the shared dgdao.Client connection. Prefer the
+	// DgdaoClient is the shared dgdao.Client connection. Prefer the
 	// delegating methods below; reach for this field only for operations not
 	// surfaced directly.
-	ModusGraphClient dgdao.Client
-	Actor            *typed.Client[Actor]
-	ContentRating    *typed.Client[ContentRating]
-	Country          *typed.Client[Country]
-	Director         *typed.Client[Director]
-	Film             *typed.Client[Film]
-	Genre            *typed.Client[Genre]
-	Location         *typed.Client[Location]
-	Performance      *typed.Client[Performance]
-	Rating           *typed.Client[Rating]
-	Studio           *typed.Client[Studio]
+	DgdaoClient   dgdao.Client
+	Actor         *typed.Client[Actor]
+	ContentRating *typed.Client[ContentRating]
+	Country       *typed.Client[Country]
+	Director      *typed.Client[Director]
+	Film          *typed.Client[Film]
+	Genre         *typed.Client[Genre]
+	Location      *typed.Client[Location]
+	Performance   *typed.Client[Performance]
+	Rating        *typed.Client[Rating]
+	Studio        *typed.Client[Studio]
 }
 
 // NewClient binds conn to a Client whose per-entity typed clients all share
 // the same connection.
 func NewClient(conn dgdao.Client) *Client {
 	return &Client{
-		ModusGraphClient: conn,
-		Actor:            typed.NewClient[Actor](conn),
-		ContentRating:    typed.NewClient[ContentRating](conn),
-		Country:          typed.NewClient[Country](conn),
-		Director:         typed.NewClient[Director](conn),
-		Film:             typed.NewClient[Film](conn),
-		Genre:            typed.NewClient[Genre](conn),
-		Location:         typed.NewClient[Location](conn),
-		Performance:      typed.NewClient[Performance](conn),
-		Rating:           typed.NewClient[Rating](conn),
-		Studio:           typed.NewClient[Studio](conn),
+		DgdaoClient:   conn,
+		Actor:         typed.NewClient[Actor](conn),
+		ContentRating: typed.NewClient[ContentRating](conn),
+		Country:       typed.NewClient[Country](conn),
+		Director:      typed.NewClient[Director](conn),
+		Film:          typed.NewClient[Film](conn),
+		Genre:         typed.NewClient[Genre](conn),
+		Location:      typed.NewClient[Location](conn),
+		Performance:   typed.NewClient[Performance](conn),
+		Rating:        typed.NewClient[Rating](conn),
+		Studio:        typed.NewClient[Studio](conn),
 	}
 }
 
 // Close releases the underlying database connection.
-func (c *Client) Close() { c.ModusGraphClient.Close() }
+func (c *Client) Close() { c.DgdaoClient.Close() }
 
 // UpdateSchema applies schema derived from the provided struct types.
 func (c *Client) UpdateSchema(ctx context.Context, obj ...any) error {
-	return c.ModusGraphClient.UpdateSchema(ctx, obj...)
+	return c.DgdaoClient.UpdateSchema(ctx, obj...)
 }
 
 // AlterSchema applies a raw DQL schema string.
 func (c *Client) AlterSchema(ctx context.Context, schema string) error {
-	return c.ModusGraphClient.AlterSchema(ctx, schema)
+	return c.DgdaoClient.AlterSchema(ctx, schema)
 }
 
 // GetSchema returns the current Dgraph schema as a DQL string.
 func (c *Client) GetSchema(ctx context.Context) (string, error) {
-	return c.ModusGraphClient.GetSchema(ctx)
+	return c.DgdaoClient.GetSchema(ctx)
 }
 
 // DropAll removes all data and schema.
-func (c *Client) DropAll(ctx context.Context) error { return c.ModusGraphClient.DropAll(ctx) }
+func (c *Client) DropAll(ctx context.Context) error { return c.DgdaoClient.DropAll(ctx) }
 
 // DropData removes all data but keeps the schema.
-func (c *Client) DropData(ctx context.Context) error { return c.ModusGraphClient.DropData(ctx) }
+func (c *Client) DropData(ctx context.Context) error { return c.DgdaoClient.DropData(ctx) }
 
 // QueryRaw executes a raw DQL query.
 func (c *Client) QueryRaw(ctx context.Context, query string, vars map[string]string) ([]byte, error) {
-	return c.ModusGraphClient.QueryRaw(ctx, query, vars)
+	return c.DgdaoClient.QueryRaw(ctx, query, vars)
 }
 
 // DgraphClient returns a raw dgo client and a cleanup function from the pool.
 func (c *Client) DgraphClient() (*dgo.Dgraph, func(), error) {
-	return c.ModusGraphClient.DgraphClient()
+	return c.DgdaoClient.DgraphClient()
 }
 
 // WithRetry executes fn with retry on aborted transactions.
 func (c *Client) WithRetry(ctx context.Context, policy dgdao.RetryPolicy, fn func() error) error {
-	return c.ModusGraphClient.WithRetry(ctx, policy, fn)
+	return c.DgdaoClient.WithRetry(ctx, policy, fn)
 }

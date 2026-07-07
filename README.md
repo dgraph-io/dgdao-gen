@@ -1,50 +1,37 @@
-# modusGraph-gen
+# dgdao-gen
 
 Code generation and the wrapper-entity runtime for
-[modusGraph](https://github.com/matthewmcneely/modusgraph). Define Go structs, run
+[dgdao](https://github.com/dgraph-io/dgdao). Define Go structs, run
 `go generate`, and get a fully typed client, query builders, auto-paging iterators, and
 a CLI — all derived from your struct definitions.
 
-`modusgraph-gen` was extracted from a fork of modusGraph. The generic typed client and
-query primitives stay in modusGraph; this project owns the generator and the
+`dgdao-gen` was extracted from dgdao. The generic typed client and
+query primitives stay in dgdao; this project owns the generator and the
 `entity` wrapper base that generated code embeds.
 
 ## Install
 
-`modusgraph-gen` depends on a fork of modusGraph that is published under a different
-import path. Go does not propagate `replace` directives to consumers, so **your project
-must declare the same replace directive**:
-
 ```
-// go.mod
-require (
-    github.com/mlwelles/modusGraph-gen v0.1.0
-    github.com/matthewmcneely/modusgraph v0.0.0-00010101000000-000000000000
-)
-
-replace github.com/matthewmcneely/modusgraph => github.com/mlwelles/modusGraph v0.5.0-dev-mlwelles-20260604a
+go get github.com/dgraph-io/dgdao-gen
 ```
-
-Without this directive, the build resolves `matthewmcneely/modusgraph` to upstream,
-which lacks the typed client and bulk loader the generated code depends on.
 
 ## Usage
 
 Add a `go:generate` directive next to your schema structs:
 
 ```go
-//go:generate go run github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen -entities
+//go:generate go run github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen -entities
 ```
 
 then run `go generate ./...`.
 
-Generated code imports the generic primitives from `modusgraph/typed` and the wrapper
-base from `modusgraph-gen/wrap`:
+Generated code imports the generic primitives from `dgdao/typed` and the wrapper
+base from `dgdao-gen/wrap`:
 
 ```go
 import (
-    "github.com/matthewmcneely/modusgraph/typed"
-    "github.com/mlwelles/modusGraph-gen/wrap"
+    "github.com/dgraph-io/dgdao/typed"
+    "github.com/dgraph-io/dgdao-gen/wrap"
 )
 ```
 
