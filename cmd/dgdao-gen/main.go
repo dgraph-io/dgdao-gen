@@ -1,10 +1,10 @@
-// modusGraph-gen is a code generation tool that reads Go structs with dgraph
+// dgdao-gen is a code generation tool that reads Go structs with dgraph
 // struct tags and produces a typed client library, functional options, query
 // builders, and a Kong CLI.
 //
 // Usage:
 //
-//	go run github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen [flags]
+//	go run github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen [flags]
 //
 // When invoked via go:generate (the typical case), it uses the current working
 // directory as the target package.
@@ -17,8 +17,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/generator"
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/generator"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser"
 )
 
 func main() {

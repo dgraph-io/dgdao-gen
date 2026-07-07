@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/model"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/model"
 )
 
 func moviesDir(t *testing.T) string {
@@ -819,7 +819,7 @@ func TestReadModulePath(t *testing.T) {
 	t.Run("FromMoviesProject", func(t *testing.T) {
 		dir := moviesDir(t)
 		got := readModulePath(dir)
-		want := "github.com/mlwelles/modusGraph-gen"
+		want := "github.com/dgraph-io/dgdao-gen"
 		if got != want {
 			t.Errorf("readModulePath(%s) = %q, want %q", dir, got, want)
 		}
@@ -829,7 +829,7 @@ func TestReadModulePath(t *testing.T) {
 		_, thisFile, _, _ := runtime.Caller(0)
 		dir := filepath.Dir(thisFile)
 		got := readModulePath(dir)
-		want := "github.com/mlwelles/modusGraph-gen"
+		want := "github.com/dgraph-io/dgdao-gen"
 		if got != want {
 			t.Errorf("readModulePath(%s) = %q, want %q", dir, got, want)
 		}
@@ -896,8 +896,8 @@ func TestModulePathPopulated(t *testing.T) {
 		t.Fatalf("Parse(%s) failed: %v", dir, err)
 	}
 
-	if pkg.ModulePath != "github.com/mlwelles/modusGraph-gen" {
-		t.Errorf("ModulePath = %q, want %q", pkg.ModulePath, "github.com/mlwelles/modusGraph-gen")
+	if pkg.ModulePath != "github.com/dgraph-io/dgdao-gen" {
+		t.Errorf("ModulePath = %q, want %q", pkg.ModulePath, "github.com/dgraph-io/dgdao-gen")
 	}
 }
 

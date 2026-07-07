@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/model"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/model"
 )
 
 // applyInference applies higher-level inference rules to an entity after its

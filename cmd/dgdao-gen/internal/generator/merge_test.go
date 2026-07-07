@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/model"
-	"github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen/internal/parser"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/model"
+	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser"
 )
 
 // scalarField builds a plain scalar model.Field.
@@ -23,7 +23,7 @@ func TestGenImports_EntitySide(t *testing.T) {
 		g.addEntitySideImports(model.Entity{Fields: []model.Field{scalarField("Name", "string")}}, nil, schemaPath)
 		block := g.block()
 		for _, want := range []string{
-			`"github.com/matthewmcneely/modusgraph/typed"`,
+			`"github.com/dgraph-io/dgdao/typed"`,
 			`"example.com/proj/schema"`,
 		} {
 			if !strings.Contains(block, want) {
@@ -83,8 +83,8 @@ func TestGenImports_ClientSide(t *testing.T) {
 	for _, want := range []string{
 		`"context"`,
 		`"iter"`,
-		`"github.com/matthewmcneely/modusgraph"`,
-		`"github.com/matthewmcneely/modusgraph/typed"`,
+		`"github.com/dgraph-io/dgdao"`,
+		`"github.com/dgraph-io/dgdao/typed"`,
 		`"example.com/proj/schema"`,
 	} {
 		if !strings.Contains(block, want) {

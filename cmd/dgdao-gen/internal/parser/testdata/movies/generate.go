@@ -1,5 +1,5 @@
 // Package movies anchors the //go:generate directive for the wrapper-parent
-// layout: schema files live in ./schema/, and modusgraph-gen emits wrappers
+// layout: schema files live in ./schema/, and dgdao-gen emits wrappers
 // here (the parent of schema/). Running `go generate ./...` from this
 // directory passes -entities to exercise both the schema-side output (the
 // generated aggregate Client whose fields are *typed.Client[T], plus the
@@ -16,7 +16,7 @@
 // docs/specs/2026-05-18-public-wrapper-types-design.md.
 //
 // -no-cli is passed because the generated CLI imports github.com/alecthomas/kong,
-// which is not (and should not be) a dependency of the modusgraph module itself.
+// which is not (and should not be) a dependency of the dgdao module itself.
 // Adding kong to go.mod would cause `go mod tidy` to strip it, since nothing in
 // the compiled tree uses it. This fixture exists to exercise the schema + wrapper
 // layers; the cross-package e2e tests (unwrap_e2e_test.go) import the wrapper
@@ -24,4 +24,4 @@
 // by TestGenerate_CLIImportsSchemaByFullPath in the generator package.
 package movies
 
-//go:generate go run github.com/mlwelles/modusGraph-gen/cmd/modusgraph-gen -entities -no-cli
+//go:generate go run github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen -entities -no-cli
