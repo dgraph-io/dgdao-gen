@@ -37,6 +37,14 @@ import (
 
 <!-- Struct-tag reference and full CLI-flag table land before the first release. -->
 
+## Related projects
+
+Part of the [dgdao](https://github.com/dgraph-io/dgdao) family:
+
+- [dgdao](https://github.com/dgraph-io/dgdao) — core typed client and DAO library for Dgraph
+- [dgdao-migrate](https://github.com/dgraph-io/dgdao-migrate) — struct-first schema migration framework for Dgraph
+- [dgdao-telemetry](https://github.com/dgraph-io/dgdao-telemetry) — OpenTelemetry instrumentation for the dgdao typed client
+
 ## License
 
 Apache-2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
