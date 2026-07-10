@@ -21,6 +21,24 @@ import (
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser"
 )
 
+// resolveLicenseHeader validates and resolves the -license-header and
+// -license-header-file flag values into the raw header text passed to
+// generator.Config.LicenseHeader. Setting both is an error. Setting neither
+// returns "" (no license header emitted, existing behavior).
+func resolveLicenseHeader(headerFlag, headerFileFlag string) (string, error) {
+	if headerFlag != "" && headerFileFlag != "" {
+		return "", fmt.Errorf("only one of -license-header or -license-header-file may be set")
+	}
+	if headerFileFlag == "" {
+		return headerFlag, nil
+	}
+	data, err := os.ReadFile(headerFileFlag)
+	if err != nil {
+		return "", fmt.Errorf("reading -license-header-file %s: %w", headerFileFlag, err)
+	}
+	return string(data), nil
+}
+
 func main() {
 	schemaDir := flag.String("schema-dir", "", "schema source directory (default: ./schema if exists, else CWD)")
 	schemaAlias := flag.String("schema-alias", "", "import alias for schema pkg (default: basename of -schema-dir)")
@@ -39,7 +57,14 @@ func main() {
 	withValidator := flag.Bool("with-validator", false, "enable validation in the generated CLI")
 	cliMain := flag.Bool("cli-main", true, "emit a func main() + package main (standalone binary); set false to emit an importable, mountable library package instead")
 	cliPackage := flag.String("cli-package", "", "package name for the CLI library when -cli-main=false (default: <cli-name>cli)")
+	licenseHeader := flag.String("license-header", "", "license header text prepended (as a Go comment) above the generated-code marker in every output file")
+	licenseHeaderFile := flag.String("license-header-file", "", "path to a file containing the license header text; mutually exclusive with -license-header")
 	flag.Parse()
+
+	licenseHeaderResolved, err := resolveLicenseHeader(*licenseHeader, *licenseHeaderFile)
+	if err != nil {
+		log.Fatalf("license header: %v", err)
+	}
 
 	// Apply the deprecated -out alias.
 	if *out != "" && *entityDir == "" {
@@ -127,6 +152,7 @@ func main() {
 		WithValidator:           *withValidator,
 		CLINoMain:               !*cliMain,
 		CLIPackage:              *cliPackage,
+		LicenseHeader:           licenseHeaderResolved,
 	}
 
 	if err := generator.Generate(pkg, cfg); err != nil {
