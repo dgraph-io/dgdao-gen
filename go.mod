@@ -2,7 +2,7 @@ module github.com/dgraph-io/dgdao-gen
 
 go 1.26.4
 
-require github.com/dgraph-io/dgdao v0.5.4
+require github.com/dgraph-io/dgdao v0.6.0
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2 // indirect

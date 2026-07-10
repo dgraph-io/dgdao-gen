@@ -98,3 +98,52 @@ func mustMkdir(t *testing.T, path string) {
 		t.Fatalf("mkdir %s: %v", path, err)
 	}
 }
+
+func TestResolveLicenseHeader_BothSetErrors(t *testing.T) {
+	if _, err := resolveLicenseHeader("inline text", "/some/file"); err == nil {
+		t.Fatal("expected an error when both -license-header and -license-header-file are set")
+	}
+}
+
+func TestResolveLicenseHeader_NeitherSetReturnsEmpty(t *testing.T) {
+	got, err := resolveLicenseHeader("", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != "" {
+		t.Fatalf("expected empty header, got %q", got)
+	}
+}
+
+func TestResolveLicenseHeader_InlineTextPassesThrough(t *testing.T) {
+	got, err := resolveLicenseHeader("Copyright 2026 Example Corp.", "")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != "Copyright 2026 Example Corp." {
+		t.Fatalf("got %q, want inline text unchanged", got)
+	}
+}
+
+func TestResolveLicenseHeader_ReadsFile(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "header.txt")
+	want := "Copyright 2026 Example Corp.\nAll rights reserved.\n"
+	if err := os.WriteFile(path, []byte(want), 0o644); err != nil {
+		t.Fatalf("writing header file: %v", err)
+	}
+
+	got, err := resolveLicenseHeader("", path)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if got != want {
+		t.Fatalf("got %q, want %q", got, want)
+	}
+}
+
+func TestResolveLicenseHeader_MissingFileErrors(t *testing.T) {
+	if _, err := resolveLicenseHeader("", filepath.Join(t.TempDir(), "missing.txt")); err == nil {
+		t.Fatal("expected an error when -license-header-file does not exist")
+	}
+}
