@@ -3,6 +3,13 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.1] - 2026-07-16
+
+### Changed
+
+- Bump the `github.com/dgraph-io/dgdao` dependency to v0.6.1, which caches the per-write
+  schema check.
+
 ## [0.5.0] - 2026-07-10
 
 ### Added
