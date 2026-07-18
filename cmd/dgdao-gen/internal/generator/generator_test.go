@@ -1162,6 +1162,10 @@ type Film struct {
 		`return c.conn`,
 		`func (c *Client) DropAll(ctx context.Context) error`,
 		`func (c *Client) AlterSchema(ctx context.Context, schema string) error`,
+		`func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext`,
+		`return c.conn.NewTxnContext(ctx)`,
+		`func (c *Client) InTxn(tx *dgdao.TxnContext) *Client`,
+		`return NewClient(c.conn.InTxn(tx))`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("client_gen.go (wrapper side) missing: %q\n---file---\n%s", want, data)
@@ -1173,6 +1177,29 @@ type Film struct {
 	} {
 		if strings.Contains(data, notWant) {
 			t.Errorf("wrapper client_gen.go must NOT depend on the schema aggregate: %q", notWant)
+		}
+	}
+}
+
+// TestGenerate_WrapperClientInTxn asserts that the generated top-level
+// Client.InTxn rebuilds every per-entity sub-client from the txn-scoped
+// conn (c.conn.InTxn(tx)) rather than from the original conn. This is the
+// crux of the InTxn contract: NewClient builds each entity sub-client
+// purely from its conn argument (see wrapper_entity_client.go.tmpl), so
+// passing the txn-scoped conn back through NewClient scopes both the
+// untyped operations and every typed entity accessor in one step.
+func TestGenerate_WrapperClientInTxn(t *testing.T) {
+	_, _, entityDir := generateFromMinimalSchema(t)
+
+	data := mustReadGen(t, entityDir, "client_gen.go")
+	for _, want := range []string{
+		`func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext {`,
+		`return c.conn.NewTxnContext(ctx)`,
+		`func (c *Client) InTxn(tx *dgdao.TxnContext) *Client {`,
+		`return NewClient(c.conn.InTxn(tx))`,
+	} {
+		if !strings.Contains(data, want) {
+			t.Errorf("client_gen.go missing InTxn/NewTxnContext delegator: %q\n---file---\n%s", want, data)
 		}
 	}
 }
