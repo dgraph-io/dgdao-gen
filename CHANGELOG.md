@@ -3,6 +3,21 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.6.0] - 2026-07-17
+
+### Added
+
+- The generated top-level wrapper `Client` now exposes `NewTxnContext(ctx)` and
+  `InTxn(tx) *Client`, delegating to the same methods on dgdao v0.8.0's
+  `dgdao.Client`. `InTxn` rebuilds every per-entity sub-client on the
+  transaction-scoped connection, so both the untyped operations and every
+  typed entity accessor run inside the transaction.
+
+### Changed
+
+- Bump the `github.com/dgraph-io/dgdao` dependency to v0.8.0, which adds
+  `Client.InTxn` and `Client.NewTxnContext`.
+
 ## [0.5.1] - 2026-07-16
 
 ### Changed
