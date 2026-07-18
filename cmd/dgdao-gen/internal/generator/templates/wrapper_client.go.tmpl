@@ -69,3 +69,15 @@ func (c *Client) DgraphClient() (*dgo.Dgraph, func(), error) {
 func (c *Client) WithRetry(ctx context.Context, policy dgdao.RetryPolicy, fn func() error) error {
 	return c.conn.WithRetry(ctx, policy, fn)
 }
+
+// NewTxnContext opens a read-write transaction on the underlying client.
+func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext {
+	return c.conn.NewTxnContext(ctx)
+}
+
+// InTxn returns a Client whose untyped operations and every per-entity
+// sub-client run inside tx. Reads join the transaction's read-set; writes
+// stage on it; commit via tx.Commit().
+func (c *Client) InTxn(tx *dgdao.TxnContext) *Client {
+	return NewClient(c.conn.InTxn(tx))
+}
