@@ -12,67 +12,66 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Rating wraps a schema.Rating and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Rating wraps a schema.Rating record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Rating struct {
-	wrap.Wrapper[schema.Rating]
+	dgdao.Entity[schema.Rating]
 }
 
-// NewRating constructs a Rating with a fresh, empty schema struct, then
+// NewRating constructs a Rating with a fresh, empty record struct, then
 // applies the given options.
 func NewRating(opts ...typed.Option[Rating]) *Rating {
-	e := &Rating{Wrapper: wrap.WrapValue(&schema.Rating{})}
+	e := &Rating{Entity: dgdao.AsEntity(&schema.Rating{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapRating constructs a Rating backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapRating(s *schema.Rating, opts ...typed.Option[Rating]) *Rating {
-	e := &Rating{Wrapper: wrap.WrapValue(s)}
+// NewRatingWithRecord constructs a Rating backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewRatingWithRecord(r *schema.Rating, opts ...typed.Option[Rating]) *Rating {
+	e := &Rating{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Rating) UID() string { return e.Unwrap().UID }
+func (e *Rating) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Rating) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Rating) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Rating) DType() []string { return e.Unwrap().DType }
+func (e *Rating) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Rating) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Rating) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Rating) Name() string { return e.Unwrap().Name }
+func (e *Rating) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Rating) SetName(v string) { e.Unwrap().Name = v }
+func (e *Rating) SetName(v string) { e.Record().Name = v }
 
-// Films returns a freshly allocated slice of wrappers over each
+// Films returns a freshly allocated slice of entities over each
 // Film in the multi-edge.
 func (e *Rating) Films() []*Film {
-	out := make([]*Film, len(e.Unwrap().Films))
-	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Film, len(e.Record().Films))
+	for i, x := range e.Record().Films {
+		out[i] = &Film{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// FilmsSeq returns an iterator over the wrapped Films, avoiding
+// FilmsSeq returns an iterator over the Film entities, avoiding
 // the allocation in Films().
 func (e *Rating) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
-		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Films {
+			if !yield(&Film{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -81,22 +80,22 @@ func (e *Rating) FilmsSeq() iter.Seq[*Film] {
 
 // SetFilms replaces the multi-edge with the given items.
 func (e *Rating) SetFilms(items ...*Film) {
-	e.Unwrap().Films = make([]*schema.Film, len(items))
+	e.Record().Films = make([]*schema.Film, len(items))
 	for i, x := range items {
-		e.Unwrap().Films[i] = x.Unwrap()
+		e.Record().Films[i] = x.Record()
 	}
 }
 
 // AppendFilms appends items to the multi-edge.
 func (e *Rating) AppendFilms(items ...*Film) {
 	for _, x := range items {
-		e.Unwrap().Films = append(e.Unwrap().Films, x.Unwrap())
+		e.Record().Films = append(e.Record().Films, x.Record())
 	}
 }
 
 // RemoveFilms removes elements with any of the given UIDs from the multi-edge.
 func (e *Rating) RemoveFilms(uids ...string) {
-	e.Unwrap().Films = slices.DeleteFunc(e.Unwrap().Films, func(x *schema.Film) bool {
+	e.Record().Films = slices.DeleteFunc(e.Record().Films, func(x *schema.Film) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
@@ -106,41 +105,54 @@ func WithRatingName(v string) typed.Option[Rating] {
 	return func(e *Rating) { e.SetName(v) }
 }
 
-// RatingClient provides CRUD/query operations over Rating wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithRatingFilms replaces the films multi-edge on a *Rating
+// with the given items.
+func WithRatingFilms(items ...*Film) typed.Option[Rating] {
+	return func(e *Rating) { e.SetFilms(items...) }
+}
+
+// RatingClient provides CRUD/query operations over Rating entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type RatingClient struct {
 	typed *typed.Client[schema.Rating]
 }
 
-// NewRatingClient binds a RatingClient to conn.
-func NewRatingClient(conn dgdao.Client) *RatingClient {
+// NewRatingClient binds a RatingClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewRatingClient(conn dgdao.ClientCore) *RatingClient {
 	return &RatingClient{typed: typed.NewClient[schema.Rating](conn)}
+}
+
+// InTxn returns a RatingClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *RatingClient) InTxn(tx *dgdao.Txn) *RatingClient {
+	return &RatingClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Rating with the given UID and returns it wrapped.
 func (c *RatingClient) Get(ctx context.Context, uid string) (*Rating, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapRating(s), nil
+	return NewRatingWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *RatingClient) Add(ctx context.Context, w *Rating) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *RatingClient) Insert(ctx context.Context, e *Rating) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *RatingClient) Update(ctx context.Context, w *Rating) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *RatingClient) Update(ctx context.Context, e *Rating) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *RatingClient) Upsert(ctx context.Context, w *Rating, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *RatingClient) Upsert(ctx context.Context, e *Rating, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Rating with the given UID.
@@ -148,9 +160,16 @@ func (c *RatingClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Rating.
+// Query returns an entity-side query builder for Rating.
 func (c *RatingClient) Query(ctx context.Context) *RatingQuery {
 	return &RatingQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *RatingClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Rating fields tagged
@@ -263,7 +282,7 @@ func (q *RatingQuery) Or(builders ...func(*RatingQuery)) *RatingQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Rating results.
+// Nodes executes the query and returns the Rating entities.
 func (q *RatingQuery) Nodes() ([]*Rating, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -271,31 +290,31 @@ func (q *RatingQuery) Nodes() ([]*Rating, error) {
 	}
 	out := make([]*Rating, len(recs))
 	for i := range recs {
-		out[i] = WrapRating(&recs[i])
+		out[i] = NewRatingWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Rating, or nil if no rows matched.
+// Rating entity, or nil if no rows matched.
 func (q *RatingQuery) First() (*Rating, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapRating(s), nil
+	return NewRatingWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Rating values, paging
+// IterNodes streams the query's results as Rating entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *RatingQuery) IterNodes() iter.Seq2[*Rating, error] {
 	return func(yield func(*Rating, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapRating(s), nil) {
+			if !yield(NewRatingWithRecord(r), nil) {
 				return
 			}
 		}

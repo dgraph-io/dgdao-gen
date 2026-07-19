@@ -1,4 +1,5 @@
 {{- $E := .Entity.Name }}
+{{- $sAlias := .SchemaAlias }}
 {{- $fields := nonSliceScalarFields .Entity.Fields }}
 {{- range $fields }}
   {{- if and (not .IsUID) (not .IsDType) }}
@@ -8,4 +9,37 @@ func With{{ $E }}{{ . | accessorName }}(v {{ .GoType }}) typed.Option[{{ $E }}] 
 	return func(e *{{ $E }}) { e.Set{{ . | accessorName }}(v) }
 }
   {{- end }}
+{{- end }}
+{{- range allPointerSingularEdgeFields .Entity.Fields }}
+{{- $bare := trimSchemaAlias (trimPointerPrefix .GoType) $sAlias }}
+
+// With{{ $E }}{{ .Name }} sets the {{ .JSONTag }} edge on a *{{ $E }}.
+func With{{ $E }}{{ .Name }}(v *{{ $bare }}) typed.Option[{{ $E }}] {
+	return func(e *{{ $E }}) { e.Set{{ .Name }}(v) }
+}
+{{- end }}
+{{- range allValueSingularEdgeFields .Entity.Fields }}
+{{- $bare := trimSchemaAlias .GoType $sAlias }}
+
+// With{{ $E }}{{ .Name }} sets the {{ .JSONTag }} edge on a *{{ $E }} (value copy).
+func With{{ $E }}{{ .Name }}(v *{{ $bare }}) typed.Option[{{ $E }}] {
+	return func(e *{{ $E }}) { e.Set{{ .Name }}(v) }
+}
+{{- end }}
+{{- range allSingularViaListFields .Entity.Fields }}
+{{- $bare := trimSliceOfPointerPrefix .GoType $sAlias }}
+
+// With{{ $E }}{{ .Name }} sets the {{ .JSONTag }} singular-via-list edge on a *{{ $E }}.
+func With{{ $E }}{{ .Name }}(v *{{ $bare }}) typed.Option[{{ $E }}] {
+	return func(e *{{ $E }}) { e.Set{{ .Name }}(v) }
+}
+{{- end }}
+{{- range allMultiEdgeFields .Entity.Fields }}
+{{- $bare := trimSliceOfPointerPrefix .GoType $sAlias }}
+
+// With{{ $E }}{{ .Name }} replaces the {{ .JSONTag }} multi-edge on a *{{ $E }}
+// with the given items.
+func With{{ $E }}{{ .Name }}(items ...*{{ $bare }}) typed.Option[{{ $E }}] {
+	return func(e *{{ $E }}) { e.Set{{ .Name }}(items...) }
+}
 {{- end }}

@@ -13,79 +13,78 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Film wraps a schema.Film and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Film wraps a schema.Film record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Film struct {
-	wrap.Wrapper[schema.Film]
+	dgdao.Entity[schema.Film]
 }
 
-// NewFilm constructs a Film with a fresh, empty schema struct, then
+// NewFilm constructs a Film with a fresh, empty record struct, then
 // applies the given options.
 func NewFilm(opts ...typed.Option[Film]) *Film {
-	e := &Film{Wrapper: wrap.WrapValue(&schema.Film{})}
+	e := &Film{Entity: dgdao.AsEntity(&schema.Film{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapFilm constructs a Film backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapFilm(s *schema.Film, opts ...typed.Option[Film]) *Film {
-	e := &Film{Wrapper: wrap.WrapValue(s)}
+// NewFilmWithRecord constructs a Film backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewFilmWithRecord(r *schema.Film, opts ...typed.Option[Film]) *Film {
+	e := &Film{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Film) UID() string { return e.Unwrap().UID }
+func (e *Film) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Film) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Film) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Film) DType() []string { return e.Unwrap().DType }
+func (e *Film) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Film) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Film) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Film) Name() string { return e.Unwrap().Name }
+func (e *Film) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Film) SetName(v string) { e.Unwrap().Name = v }
+func (e *Film) SetName(v string) { e.Record().Name = v }
 
 // InitialReleaseDate returns the initialReleaseDate field.
-func (e *Film) InitialReleaseDate() time.Time { return e.Unwrap().InitialReleaseDate }
+func (e *Film) InitialReleaseDate() time.Time { return e.Record().InitialReleaseDate }
 
 // SetInitialReleaseDate sets the initialReleaseDate field.
-func (e *Film) SetInitialReleaseDate(v time.Time) { e.Unwrap().InitialReleaseDate = v }
+func (e *Film) SetInitialReleaseDate(v time.Time) { e.Record().InitialReleaseDate = v }
 
 // Tagline returns the tagline field.
-func (e *Film) Tagline() string { return e.Unwrap().Tagline }
+func (e *Film) Tagline() string { return e.Record().Tagline }
 
 // SetTagline sets the tagline field.
-func (e *Film) SetTagline(v string) { e.Unwrap().Tagline = v }
+func (e *Film) SetTagline(v string) { e.Record().Tagline = v }
 
-// Genres returns a freshly allocated slice of wrappers over each
+// Genres returns a freshly allocated slice of entities over each
 // Genre in the multi-edge.
 func (e *Film) Genres() []*Genre {
-	out := make([]*Genre, len(e.Unwrap().Genres))
-	for i, x := range e.Unwrap().Genres {
-		out[i] = &Genre{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Genre, len(e.Record().Genres))
+	for i, x := range e.Record().Genres {
+		out[i] = &Genre{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// GenresSeq returns an iterator over the wrapped Genres, avoiding
+// GenresSeq returns an iterator over the Genre entities, avoiding
 // the allocation in Genres().
 func (e *Film) GenresSeq() iter.Seq[*Genre] {
 	return func(yield func(*Genre) bool) {
-		for _, x := range e.Unwrap().Genres {
-			if !yield(&Genre{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Genres {
+			if !yield(&Genre{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -94,42 +93,42 @@ func (e *Film) GenresSeq() iter.Seq[*Genre] {
 
 // SetGenres replaces the multi-edge with the given items.
 func (e *Film) SetGenres(items ...*Genre) {
-	e.Unwrap().Genres = make([]*schema.Genre, len(items))
+	e.Record().Genres = make([]*schema.Genre, len(items))
 	for i, x := range items {
-		e.Unwrap().Genres[i] = x.Unwrap()
+		e.Record().Genres[i] = x.Record()
 	}
 }
 
 // AppendGenres appends items to the multi-edge.
 func (e *Film) AppendGenres(items ...*Genre) {
 	for _, x := range items {
-		e.Unwrap().Genres = append(e.Unwrap().Genres, x.Unwrap())
+		e.Record().Genres = append(e.Record().Genres, x.Record())
 	}
 }
 
 // RemoveGenres removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveGenres(uids ...string) {
-	e.Unwrap().Genres = slices.DeleteFunc(e.Unwrap().Genres, func(x *schema.Genre) bool {
+	e.Record().Genres = slices.DeleteFunc(e.Record().Genres, func(x *schema.Genre) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// Countries returns a freshly allocated slice of wrappers over each
+// Countries returns a freshly allocated slice of entities over each
 // Country in the multi-edge.
 func (e *Film) Countries() []*Country {
-	out := make([]*Country, len(e.Unwrap().Countries))
-	for i, x := range e.Unwrap().Countries {
-		out[i] = &Country{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Country, len(e.Record().Countries))
+	for i, x := range e.Record().Countries {
+		out[i] = &Country{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// CountriesSeq returns an iterator over the wrapped Countrys, avoiding
+// CountriesSeq returns an iterator over the Country entities, avoiding
 // the allocation in Countries().
 func (e *Film) CountriesSeq() iter.Seq[*Country] {
 	return func(yield func(*Country) bool) {
-		for _, x := range e.Unwrap().Countries {
-			if !yield(&Country{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Countries {
+			if !yield(&Country{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -138,42 +137,42 @@ func (e *Film) CountriesSeq() iter.Seq[*Country] {
 
 // SetCountries replaces the multi-edge with the given items.
 func (e *Film) SetCountries(items ...*Country) {
-	e.Unwrap().Countries = make([]*schema.Country, len(items))
+	e.Record().Countries = make([]*schema.Country, len(items))
 	for i, x := range items {
-		e.Unwrap().Countries[i] = x.Unwrap()
+		e.Record().Countries[i] = x.Record()
 	}
 }
 
 // AppendCountries appends items to the multi-edge.
 func (e *Film) AppendCountries(items ...*Country) {
 	for _, x := range items {
-		e.Unwrap().Countries = append(e.Unwrap().Countries, x.Unwrap())
+		e.Record().Countries = append(e.Record().Countries, x.Record())
 	}
 }
 
 // RemoveCountries removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveCountries(uids ...string) {
-	e.Unwrap().Countries = slices.DeleteFunc(e.Unwrap().Countries, func(x *schema.Country) bool {
+	e.Record().Countries = slices.DeleteFunc(e.Record().Countries, func(x *schema.Country) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// Ratings returns a freshly allocated slice of wrappers over each
+// Ratings returns a freshly allocated slice of entities over each
 // Rating in the multi-edge.
 func (e *Film) Ratings() []*Rating {
-	out := make([]*Rating, len(e.Unwrap().Ratings))
-	for i, x := range e.Unwrap().Ratings {
-		out[i] = &Rating{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Rating, len(e.Record().Ratings))
+	for i, x := range e.Record().Ratings {
+		out[i] = &Rating{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// RatingsSeq returns an iterator over the wrapped Ratings, avoiding
+// RatingsSeq returns an iterator over the Rating entities, avoiding
 // the allocation in Ratings().
 func (e *Film) RatingsSeq() iter.Seq[*Rating] {
 	return func(yield func(*Rating) bool) {
-		for _, x := range e.Unwrap().Ratings {
-			if !yield(&Rating{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Ratings {
+			if !yield(&Rating{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -182,42 +181,42 @@ func (e *Film) RatingsSeq() iter.Seq[*Rating] {
 
 // SetRatings replaces the multi-edge with the given items.
 func (e *Film) SetRatings(items ...*Rating) {
-	e.Unwrap().Ratings = make([]*schema.Rating, len(items))
+	e.Record().Ratings = make([]*schema.Rating, len(items))
 	for i, x := range items {
-		e.Unwrap().Ratings[i] = x.Unwrap()
+		e.Record().Ratings[i] = x.Record()
 	}
 }
 
 // AppendRatings appends items to the multi-edge.
 func (e *Film) AppendRatings(items ...*Rating) {
 	for _, x := range items {
-		e.Unwrap().Ratings = append(e.Unwrap().Ratings, x.Unwrap())
+		e.Record().Ratings = append(e.Record().Ratings, x.Record())
 	}
 }
 
 // RemoveRatings removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveRatings(uids ...string) {
-	e.Unwrap().Ratings = slices.DeleteFunc(e.Unwrap().Ratings, func(x *schema.Rating) bool {
+	e.Record().Ratings = slices.DeleteFunc(e.Record().Ratings, func(x *schema.Rating) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// ContentRatings returns a freshly allocated slice of wrappers over each
+// ContentRatings returns a freshly allocated slice of entities over each
 // ContentRating in the multi-edge.
 func (e *Film) ContentRatings() []*ContentRating {
-	out := make([]*ContentRating, len(e.Unwrap().ContentRatings))
-	for i, x := range e.Unwrap().ContentRatings {
-		out[i] = &ContentRating{Wrapper: wrap.WrapValue(x)}
+	out := make([]*ContentRating, len(e.Record().ContentRatings))
+	for i, x := range e.Record().ContentRatings {
+		out[i] = &ContentRating{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// ContentRatingsSeq returns an iterator over the wrapped ContentRatings, avoiding
+// ContentRatingsSeq returns an iterator over the ContentRating entities, avoiding
 // the allocation in ContentRatings().
 func (e *Film) ContentRatingsSeq() iter.Seq[*ContentRating] {
 	return func(yield func(*ContentRating) bool) {
-		for _, x := range e.Unwrap().ContentRatings {
-			if !yield(&ContentRating{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().ContentRatings {
+			if !yield(&ContentRating{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -226,42 +225,42 @@ func (e *Film) ContentRatingsSeq() iter.Seq[*ContentRating] {
 
 // SetContentRatings replaces the multi-edge with the given items.
 func (e *Film) SetContentRatings(items ...*ContentRating) {
-	e.Unwrap().ContentRatings = make([]*schema.ContentRating, len(items))
+	e.Record().ContentRatings = make([]*schema.ContentRating, len(items))
 	for i, x := range items {
-		e.Unwrap().ContentRatings[i] = x.Unwrap()
+		e.Record().ContentRatings[i] = x.Record()
 	}
 }
 
 // AppendContentRatings appends items to the multi-edge.
 func (e *Film) AppendContentRatings(items ...*ContentRating) {
 	for _, x := range items {
-		e.Unwrap().ContentRatings = append(e.Unwrap().ContentRatings, x.Unwrap())
+		e.Record().ContentRatings = append(e.Record().ContentRatings, x.Record())
 	}
 }
 
 // RemoveContentRatings removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveContentRatings(uids ...string) {
-	e.Unwrap().ContentRatings = slices.DeleteFunc(e.Unwrap().ContentRatings, func(x *schema.ContentRating) bool {
+	e.Record().ContentRatings = slices.DeleteFunc(e.Record().ContentRatings, func(x *schema.ContentRating) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// Starring returns a freshly allocated slice of wrappers over each
+// Starring returns a freshly allocated slice of entities over each
 // Performance in the multi-edge.
 func (e *Film) Starring() []*Performance {
-	out := make([]*Performance, len(e.Unwrap().Starring))
-	for i, x := range e.Unwrap().Starring {
-		out[i] = &Performance{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Performance, len(e.Record().Starring))
+	for i, x := range e.Record().Starring {
+		out[i] = &Performance{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// StarringSeq returns an iterator over the wrapped Performances, avoiding
+// StarringSeq returns an iterator over the Performance entities, avoiding
 // the allocation in Starring().
 func (e *Film) StarringSeq() iter.Seq[*Performance] {
 	return func(yield func(*Performance) bool) {
-		for _, x := range e.Unwrap().Starring {
-			if !yield(&Performance{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Starring {
+			if !yield(&Performance{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -270,42 +269,42 @@ func (e *Film) StarringSeq() iter.Seq[*Performance] {
 
 // SetStarring replaces the multi-edge with the given items.
 func (e *Film) SetStarring(items ...*Performance) {
-	e.Unwrap().Starring = make([]*schema.Performance, len(items))
+	e.Record().Starring = make([]*schema.Performance, len(items))
 	for i, x := range items {
-		e.Unwrap().Starring[i] = x.Unwrap()
+		e.Record().Starring[i] = x.Record()
 	}
 }
 
 // AppendStarring appends items to the multi-edge.
 func (e *Film) AppendStarring(items ...*Performance) {
 	for _, x := range items {
-		e.Unwrap().Starring = append(e.Unwrap().Starring, x.Unwrap())
+		e.Record().Starring = append(e.Record().Starring, x.Record())
 	}
 }
 
 // RemoveStarring removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveStarring(uids ...string) {
-	e.Unwrap().Starring = slices.DeleteFunc(e.Unwrap().Starring, func(x *schema.Performance) bool {
+	e.Record().Starring = slices.DeleteFunc(e.Record().Starring, func(x *schema.Performance) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// Directors returns a freshly allocated slice of wrappers over each
+// Directors returns a freshly allocated slice of entities over each
 // Director in the multi-edge.
 func (e *Film) Directors() []*Director {
-	out := make([]*Director, len(e.Unwrap().Directors))
-	for i, x := range e.Unwrap().Directors {
-		out[i] = &Director{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Director, len(e.Record().Directors))
+	for i, x := range e.Record().Directors {
+		out[i] = &Director{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// DirectorsSeq returns an iterator over the wrapped Directors, avoiding
+// DirectorsSeq returns an iterator over the Director entities, avoiding
 // the allocation in Directors().
 func (e *Film) DirectorsSeq() iter.Seq[*Director] {
 	return func(yield func(*Director) bool) {
-		for _, x := range e.Unwrap().Directors {
-			if !yield(&Director{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Directors {
+			if !yield(&Director{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -314,22 +313,22 @@ func (e *Film) DirectorsSeq() iter.Seq[*Director] {
 
 // SetDirectors replaces the multi-edge with the given items.
 func (e *Film) SetDirectors(items ...*Director) {
-	e.Unwrap().Directors = make([]*schema.Director, len(items))
+	e.Record().Directors = make([]*schema.Director, len(items))
 	for i, x := range items {
-		e.Unwrap().Directors[i] = x.Unwrap()
+		e.Record().Directors[i] = x.Record()
 	}
 }
 
 // AppendDirectors appends items to the multi-edge.
 func (e *Film) AppendDirectors(items ...*Director) {
 	for _, x := range items {
-		e.Unwrap().Directors = append(e.Unwrap().Directors, x.Unwrap())
+		e.Record().Directors = append(e.Record().Directors, x.Record())
 	}
 }
 
 // RemoveDirectors removes elements with any of the given UIDs from the multi-edge.
 func (e *Film) RemoveDirectors(uids ...string) {
-	e.Unwrap().Directors = slices.DeleteFunc(e.Unwrap().Directors, func(x *schema.Director) bool {
+	e.Record().Directors = slices.DeleteFunc(e.Record().Directors, func(x *schema.Director) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
@@ -349,41 +348,84 @@ func WithFilmTagline(v string) typed.Option[Film] {
 	return func(e *Film) { e.SetTagline(v) }
 }
 
-// FilmClient provides CRUD/query operations over Film wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithFilmGenres replaces the genres multi-edge on a *Film
+// with the given items.
+func WithFilmGenres(items ...*Genre) typed.Option[Film] {
+	return func(e *Film) { e.SetGenres(items...) }
+}
+
+// WithFilmCountries replaces the countries multi-edge on a *Film
+// with the given items.
+func WithFilmCountries(items ...*Country) typed.Option[Film] {
+	return func(e *Film) { e.SetCountries(items...) }
+}
+
+// WithFilmRatings replaces the ratings multi-edge on a *Film
+// with the given items.
+func WithFilmRatings(items ...*Rating) typed.Option[Film] {
+	return func(e *Film) { e.SetRatings(items...) }
+}
+
+// WithFilmContentRatings replaces the contentRatings multi-edge on a *Film
+// with the given items.
+func WithFilmContentRatings(items ...*ContentRating) typed.Option[Film] {
+	return func(e *Film) { e.SetContentRatings(items...) }
+}
+
+// WithFilmStarring replaces the starring multi-edge on a *Film
+// with the given items.
+func WithFilmStarring(items ...*Performance) typed.Option[Film] {
+	return func(e *Film) { e.SetStarring(items...) }
+}
+
+// WithFilmDirectors replaces the directors multi-edge on a *Film
+// with the given items.
+func WithFilmDirectors(items ...*Director) typed.Option[Film] {
+	return func(e *Film) { e.SetDirectors(items...) }
+}
+
+// FilmClient provides CRUD/query operations over Film entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type FilmClient struct {
 	typed *typed.Client[schema.Film]
 }
 
-// NewFilmClient binds a FilmClient to conn.
-func NewFilmClient(conn dgdao.Client) *FilmClient {
+// NewFilmClient binds a FilmClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewFilmClient(conn dgdao.ClientCore) *FilmClient {
 	return &FilmClient{typed: typed.NewClient[schema.Film](conn)}
+}
+
+// InTxn returns a FilmClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *FilmClient) InTxn(tx *dgdao.Txn) *FilmClient {
+	return &FilmClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Film with the given UID and returns it wrapped.
 func (c *FilmClient) Get(ctx context.Context, uid string) (*Film, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapFilm(s), nil
+	return NewFilmWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *FilmClient) Add(ctx context.Context, w *Film) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *FilmClient) Insert(ctx context.Context, e *Film) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *FilmClient) Update(ctx context.Context, w *Film) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *FilmClient) Update(ctx context.Context, e *Film) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *FilmClient) Upsert(ctx context.Context, w *Film, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *FilmClient) Upsert(ctx context.Context, e *Film, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Film with the given UID.
@@ -391,9 +433,16 @@ func (c *FilmClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Film.
+// Query returns an entity-side query builder for Film.
 func (c *FilmClient) Query(ctx context.Context) *FilmQuery {
 	return &FilmQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *FilmClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Film fields tagged
@@ -616,7 +665,7 @@ func (q *FilmQuery) Or(builders ...func(*FilmQuery)) *FilmQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Film results.
+// Nodes executes the query and returns the Film entities.
 func (q *FilmQuery) Nodes() ([]*Film, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -624,31 +673,31 @@ func (q *FilmQuery) Nodes() ([]*Film, error) {
 	}
 	out := make([]*Film, len(recs))
 	for i := range recs {
-		out[i] = WrapFilm(&recs[i])
+		out[i] = NewFilmWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Film, or nil if no rows matched.
+// Film entity, or nil if no rows matched.
 func (q *FilmQuery) First() (*Film, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapFilm(s), nil
+	return NewFilmWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Film values, paging
+// IterNodes streams the query's results as Film entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *FilmQuery) IterNodes() iter.Seq2[*Film, error] {
 	return func(yield func(*Film, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapFilm(s), nil) {
+			if !yield(NewFilmWithRecord(r), nil) {
 				return
 			}
 		}

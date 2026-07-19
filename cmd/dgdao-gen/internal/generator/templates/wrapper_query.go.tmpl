@@ -104,7 +104,7 @@ func (q *{{ $E }}Query) Or(builders ...func(*{{ $E }}Query)) *{{ $E }}Query {
 	return q
 }
 
-// Nodes executes the query and returns wrapped {{ $E }} results.
+// Nodes executes the query and returns the {{ $E }} entities.
 func (q *{{ $E }}Query) Nodes() ([]*{{ $E }}, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -112,31 +112,31 @@ func (q *{{ $E }}Query) Nodes() ([]*{{ $E }}, error) {
 	}
 	out := make([]*{{ $E }}, len(recs))
 	for i := range recs {
-		out[i] = Wrap{{ $E }}(&recs[i])
+		out[i] = New{{ $E }}WithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped {{ $E }}, or nil if no rows matched.
+// {{ $E }} entity, or nil if no rows matched.
 func (q *{{ $E }}Query) First() (*{{ $E }}, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return Wrap{{ $E }}(s), nil
+	return New{{ $E }}WithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped {{ $E }} values, paging
+// IterNodes streams the query's results as {{ $E }} entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *{{ $E }}Query) IterNodes() iter.Seq2[*{{ $E }}, error] {
 	return func(yield func(*{{ $E }}, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(Wrap{{ $E }}(s), nil) {
+			if !yield(New{{ $E }}WithRecord(r), nil) {
 				return
 			}
 		}

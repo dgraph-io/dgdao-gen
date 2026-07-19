@@ -99,7 +99,7 @@ func (c *QueryCmd) Run(conn dgdao.Client) error {
 type {{.Name}}Cmd struct {
 	Get    {{.Name}}GetCmd    `cmd:"" help:"Get a {{.Name}} by UID."`
 	List   {{.Name}}ListCmd   `cmd:"" help:"List {{.Name}} entities."`
-	Add    {{.Name}}AddCmd    `cmd:"" help:"Add a new {{.Name}}."`
+	Insert {{.Name}}InsertCmd `cmd:"" help:"Insert a new {{.Name}}."`
 	Delete {{.Name}}DeleteCmd `cmd:"" help:"Delete a {{.Name}} by UID."`
 }
 
@@ -125,7 +125,7 @@ func (c *{{.Name}}ListCmd) Run(client *{{$.Name}}.Client) error {
 	return printJSON(recs)
 }
 
-type {{.Name}}AddCmd struct {
+type {{.Name}}InsertCmd struct {
 {{- range nonSliceScalarFields .Fields}}{{if and (not .IsUID) (not .IsDType) (cliSettable .GoType)}}
 	{{- if .IsPrivate}}
 	{{. | accessorName}} {{cliType .GoType}} `help:"Set {{.Name}}." name:"{{toLower .Name}}"`
@@ -135,7 +135,7 @@ type {{.Name}}AddCmd struct {
 {{- end}}{{end}}
 }
 
-func (c *{{.Name}}AddCmd) Run(client *{{$.Name}}.Client) error {
+func (c *{{.Name}}InsertCmd) Run(client *{{$.Name}}.Client) error {
 	e := &{{$.Name}}.{{.Name}}{}
 {{- range nonSliceScalarFields .Fields}}{{if and (not .IsUID) (not .IsDType) (cliSettable .GoType)}}
 	{{- if contains .GoType "time."}}
@@ -152,7 +152,7 @@ func (c *{{.Name}}AddCmd) Run(client *{{$.Name}}.Client) error {
 	e.{{.Name}} = {{cliConvert .GoType (print "c." .Name)}}
 	{{- end}}
 {{- end}}{{end}}
-	if err := client.{{.Name}}.Add(context.Background(), e); err != nil {
+	if err := client.{{.Name}}.Insert(context.Background(), e); err != nil {
 		return err
 	}
 	return printJSON(e)

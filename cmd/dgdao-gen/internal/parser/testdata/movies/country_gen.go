@@ -12,67 +12,66 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Country wraps a schema.Country and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Country wraps a schema.Country record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Country struct {
-	wrap.Wrapper[schema.Country]
+	dgdao.Entity[schema.Country]
 }
 
-// NewCountry constructs a Country with a fresh, empty schema struct, then
+// NewCountry constructs a Country with a fresh, empty record struct, then
 // applies the given options.
 func NewCountry(opts ...typed.Option[Country]) *Country {
-	e := &Country{Wrapper: wrap.WrapValue(&schema.Country{})}
+	e := &Country{Entity: dgdao.AsEntity(&schema.Country{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapCountry constructs a Country backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapCountry(s *schema.Country, opts ...typed.Option[Country]) *Country {
-	e := &Country{Wrapper: wrap.WrapValue(s)}
+// NewCountryWithRecord constructs a Country backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewCountryWithRecord(r *schema.Country, opts ...typed.Option[Country]) *Country {
+	e := &Country{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Country) UID() string { return e.Unwrap().UID }
+func (e *Country) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Country) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Country) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Country) DType() []string { return e.Unwrap().DType }
+func (e *Country) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Country) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Country) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Country) Name() string { return e.Unwrap().Name }
+func (e *Country) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Country) SetName(v string) { e.Unwrap().Name = v }
+func (e *Country) SetName(v string) { e.Record().Name = v }
 
-// Films returns a freshly allocated slice of wrappers over each
+// Films returns a freshly allocated slice of entities over each
 // Film in the multi-edge.
 func (e *Country) Films() []*Film {
-	out := make([]*Film, len(e.Unwrap().Films))
-	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Film, len(e.Record().Films))
+	for i, x := range e.Record().Films {
+		out[i] = &Film{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// FilmsSeq returns an iterator over the wrapped Films, avoiding
+// FilmsSeq returns an iterator over the Film entities, avoiding
 // the allocation in Films().
 func (e *Country) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
-		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Films {
+			if !yield(&Film{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -81,22 +80,22 @@ func (e *Country) FilmsSeq() iter.Seq[*Film] {
 
 // SetFilms replaces the multi-edge with the given items.
 func (e *Country) SetFilms(items ...*Film) {
-	e.Unwrap().Films = make([]*schema.Film, len(items))
+	e.Record().Films = make([]*schema.Film, len(items))
 	for i, x := range items {
-		e.Unwrap().Films[i] = x.Unwrap()
+		e.Record().Films[i] = x.Record()
 	}
 }
 
 // AppendFilms appends items to the multi-edge.
 func (e *Country) AppendFilms(items ...*Film) {
 	for _, x := range items {
-		e.Unwrap().Films = append(e.Unwrap().Films, x.Unwrap())
+		e.Record().Films = append(e.Record().Films, x.Record())
 	}
 }
 
 // RemoveFilms removes elements with any of the given UIDs from the multi-edge.
 func (e *Country) RemoveFilms(uids ...string) {
-	e.Unwrap().Films = slices.DeleteFunc(e.Unwrap().Films, func(x *schema.Film) bool {
+	e.Record().Films = slices.DeleteFunc(e.Record().Films, func(x *schema.Film) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
@@ -106,41 +105,54 @@ func WithCountryName(v string) typed.Option[Country] {
 	return func(e *Country) { e.SetName(v) }
 }
 
-// CountryClient provides CRUD/query operations over Country wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithCountryFilms replaces the films multi-edge on a *Country
+// with the given items.
+func WithCountryFilms(items ...*Film) typed.Option[Country] {
+	return func(e *Country) { e.SetFilms(items...) }
+}
+
+// CountryClient provides CRUD/query operations over Country entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type CountryClient struct {
 	typed *typed.Client[schema.Country]
 }
 
-// NewCountryClient binds a CountryClient to conn.
-func NewCountryClient(conn dgdao.Client) *CountryClient {
+// NewCountryClient binds a CountryClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewCountryClient(conn dgdao.ClientCore) *CountryClient {
 	return &CountryClient{typed: typed.NewClient[schema.Country](conn)}
+}
+
+// InTxn returns a CountryClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *CountryClient) InTxn(tx *dgdao.Txn) *CountryClient {
+	return &CountryClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Country with the given UID and returns it wrapped.
 func (c *CountryClient) Get(ctx context.Context, uid string) (*Country, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapCountry(s), nil
+	return NewCountryWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *CountryClient) Add(ctx context.Context, w *Country) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *CountryClient) Insert(ctx context.Context, e *Country) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *CountryClient) Update(ctx context.Context, w *Country) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *CountryClient) Update(ctx context.Context, e *Country) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *CountryClient) Upsert(ctx context.Context, w *Country, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *CountryClient) Upsert(ctx context.Context, e *Country, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Country with the given UID.
@@ -148,9 +160,16 @@ func (c *CountryClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Country.
+// Query returns an entity-side query builder for Country.
 func (c *CountryClient) Query(ctx context.Context) *CountryQuery {
 	return &CountryQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *CountryClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Country fields tagged
@@ -263,7 +282,7 @@ func (q *CountryQuery) Or(builders ...func(*CountryQuery)) *CountryQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Country results.
+// Nodes executes the query and returns the Country entities.
 func (q *CountryQuery) Nodes() ([]*Country, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -271,31 +290,31 @@ func (q *CountryQuery) Nodes() ([]*Country, error) {
 	}
 	out := make([]*Country, len(recs))
 	for i := range recs {
-		out[i] = WrapCountry(&recs[i])
+		out[i] = NewCountryWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Country, or nil if no rows matched.
+// Country entity, or nil if no rows matched.
 func (q *CountryQuery) First() (*Country, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapCountry(s), nil
+	return NewCountryWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Country values, paging
+// IterNodes streams the query's results as Country entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *CountryQuery) IterNodes() iter.Seq2[*Country, error] {
 	return func(yield func(*Country, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapCountry(s), nil) {
+			if !yield(NewCountryWithRecord(r), nil) {
 				return
 			}
 		}

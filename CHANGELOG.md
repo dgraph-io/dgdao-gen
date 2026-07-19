@@ -3,6 +3,33 @@
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.7.0] - 2026-07-19
+
+### Changed
+
+- Generated entities embed `dgdao.Entity[<schema>.X]`; `Wrap<X>` -> `New<X>WithRecord`,
+  `Unwrap()` -> `Record()`. The `wrap` package is removed (its base type moved into dgdao
+  core as `Entity[R]`).
+- Generated `<X>Client`: `Add` -> `Insert`, `LoadOrStore` -> `GetOrInsert`,
+  `LoadAndDelete` -> `GetAndDelete`; `New<X>Client` takes `dgdao.ClientCore`, so one
+  client type serves both the connection and transaction modes.
+- Top-level `Client`: `NewTxnContext` -> `NewTxn`. The aggregate `InTxn` is removed — a
+  transaction-scoped aggregate would re-promote connection operations onto a
+  transaction-scoped value; scope per entity via `<X>Client.InTxn`, or untyped via
+  `dgdao.InTxn`.
+- Marker emission: `SchemaTypeName` -> `RecordTypeName`, matching dgdao's `Record`
+  interface.
+- Generated CLI: the `Add` subcommand is now `Insert`.
+- Bump the `github.com/dgraph-io/dgdao` dependency to v0.9.0 (curated `ClientTxn`,
+  `ClientCore`, record naming).
+
+### Added
+
+- `With<X><Edge>` option-functions for every edge field (pointer-singular, value-singular,
+  singular-via-list, and multi edges), so construction wires edges without post-hoc
+  `Set<Edge>` calls.
+- Generated per-entity clients gain `QueryRaw` and `InTxn(tx *dgdao.Txn) *<X>Client`.
+
 ## [0.6.0] - 2026-07-17
 
 ### Added

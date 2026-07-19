@@ -55,20 +55,20 @@ func TestGenerate_EmitsModelsAggregate(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if strings.Contains(string(b), "SchemaTypeName") {
+		if strings.Contains(string(b), "RecordTypeName") {
 			marker = string(b)
 			break
 		}
 	}
 	if marker == "" {
-		t.Fatal("no marker file (declaring SchemaTypeName) was generated")
+		t.Fatal("no marker file (declaring RecordTypeName) was generated")
 	}
 
 	idx := strings.Index(marker, "func Models() []any {")
 	if idx < 0 {
 		t.Fatalf("marker file missing Models() aggregate:\n%s", marker)
 	}
-	entities := strings.Count(marker, ") SchemaTypeName() string")
+	entities := strings.Count(marker, ") RecordTypeName() string")
 	if entities == 0 {
 		t.Fatal("test fixture parsed no entities")
 	}
@@ -689,7 +689,7 @@ type Studio struct {
 
 	for _, want := range []string{
 		`package schema`,
-		`func (*Studio) SchemaTypeName() string { return "Studio" }`,
+		`func (*Studio) RecordTypeName() string { return "Studio" }`,
 		`func (*Studio) SchemaPredicates() []string`,
 		`"name"`,
 		`func (*Studio) SchemaSearchPredicate() string { return "name" }`,
@@ -939,7 +939,7 @@ type Studio struct {
 
 	// Scalar
 	for _, want := range []string{
-		`func (e *Studio) Name() string { return e.Unwrap().Name }`,
+		`func (e *Studio) Name() string { return e.Record().Name }`,
 		`func (e *Studio) SetName(v string)`,
 	} {
 		if !strings.Contains(data, want) {
@@ -949,8 +949,8 @@ type Studio struct {
 	// Pointer-singular edge
 	for _, want := range []string{
 		`func (e *Studio) Founder() *Director {`,
-		`if e.Unwrap().Founder == nil {`,
-		`return &Director{Wrapper: wrap.WrapValue(e.Unwrap().Founder)}`,
+		`if e.Record().Founder == nil {`,
+		`return &Director{Entity: dgdao.AsEntity(e.Record().Founder)}`,
 		`func (e *Studio) SetFounder(v *Director)`,
 	} {
 		if !strings.Contains(data, want) {
@@ -960,9 +960,9 @@ type Studio struct {
 	// Value-singular edge
 	for _, want := range []string{
 		`func (e *Studio) Headquarters() *Country {`,
-		`return &Country{Wrapper: wrap.WrapValue(&e.Unwrap().Headquarters)}`,
+		`return &Country{Entity: dgdao.AsEntity(&e.Record().Headquarters)}`,
 		`func (e *Studio) SetHeadquarters(v *Country)`,
-		`e.Unwrap().Headquarters = *v.Unwrap()`,
+		`e.Record().Headquarters = *v.Record()`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("value-singular accessor missing: %q", want)
@@ -971,9 +971,9 @@ type Studio struct {
 	// Singular-via-list
 	for _, want := range []string{
 		`func (e *Studio) CurrentHead() *Director {`,
-		`if len(e.Unwrap().CurrentHead) == 0 || e.Unwrap().CurrentHead[0] == nil {`,
+		`if len(e.Record().CurrentHead) == 0 || e.Record().CurrentHead[0] == nil {`,
 		`func (e *Studio) SetCurrentHead(v *Director)`,
-		`e.Unwrap().CurrentHead = []*schema.Director{v.Unwrap()}`,
+		`e.Record().CurrentHead = []*schema.Director{v.Record()}`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("singular-via-list accessor missing: %q", want)
@@ -1032,17 +1032,17 @@ func TestGenerate_EntityWrapperStruct(t *testing.T) {
 		`package entity`,
 		`"example.com/test"`,
 		`"github.com/dgraph-io/dgdao/typed"`,
-		`"github.com/dgraph-io/dgdao-gen/wrap"`,
+		`"github.com/dgraph-io/dgdao"`,
 		`type Studio struct {`,
-		`wrap.Wrapper[schema.Studio]`,
+		`dgdao.Entity[schema.Studio]`,
 		`func NewStudio(opts ...typed.Option[Studio]) *Studio {`,
-		`func WrapStudio(s *schema.Studio, opts ...typed.Option[Studio]) *Studio {`,
-		`wrap.WrapValue(&schema.Studio{})`,
-		`wrap.WrapValue(s)`,
+		`func NewStudioWithRecord(r *schema.Studio, opts ...typed.Option[Studio]) *Studio {`,
+		`dgdao.AsEntity(&schema.Studio{})`,
+		`dgdao.AsEntity(r)`,
 		`typed.Apply(e, opts...)`,
-		`func (e *Studio) UID() string { return e.Unwrap().UID }`,
+		`func (e *Studio) UID() string { return e.Record().UID }`,
 		`func (e *Studio) SetUID(v string)`,
-		`func (e *Studio) DType() []string { return e.Unwrap().DType }`,
+		`func (e *Studio) DType() []string { return e.Record().DType }`,
 		`func (e *Studio) SetDType(v []string)`,
 	} {
 		if !strings.Contains(data, want) {
@@ -1050,18 +1050,18 @@ func TestGenerate_EntityWrapperStruct(t *testing.T) {
 		}
 	}
 
-	// Negative: Unwrap/Marshal/Unmarshal/Validate are inherited from
-	// wrap.Wrapper and MUST NOT be re-emitted by any fragment. (The client
+	// Negative: Record/Marshal/Unmarshal/Validate are inherited from
+	// dgdao.Entity and MUST NOT be re-emitted by any fragment. (The client
 	// type IS legitimately present in the merged file via the client fragment;
 	// it's covered by TestGenerate_WrapperEntityClient.)
 	for _, notWant := range []string{
-		`func (e *Studio) Unwrap()`,
+		`func (e *Studio) Record()`,
 		`func (e *Studio) MarshalJSON(`,
 		`func (e *Studio) UnmarshalJSON(`,
 		`func (e *Studio) Validate(`,
 	} {
 		if strings.Contains(data, notWant) {
-			t.Errorf("studio_gen.go must NOT include %q (provided by wrap.Wrapper)", notWant)
+			t.Errorf("studio_gen.go must NOT include %q (provided by dgdao.Entity)", notWant)
 		}
 	}
 }
@@ -1162,10 +1162,8 @@ type Film struct {
 		`return c.conn`,
 		`func (c *Client) DropAll(ctx context.Context) error`,
 		`func (c *Client) AlterSchema(ctx context.Context, schema string) error`,
-		`func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext`,
-		`return c.conn.NewTxnContext(ctx)`,
-		`func (c *Client) InTxn(tx *dgdao.TxnContext) *Client`,
-		`return NewClient(c.conn.InTxn(tx))`,
+		`func (c *Client) NewTxn(ctx context.Context) *dgdao.Txn`,
+		`return c.conn.NewTxn(ctx)`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("client_gen.go (wrapper side) missing: %q\n---file---\n%s", want, data)
@@ -1174,32 +1172,42 @@ type Film struct {
 	for _, notWant := range []string{
 		`schemaClient *schema.Client`,
 		`sc := schema.NewClient(conn)`,
+		// The aggregate InTxn is gone: a txn-scoped aggregate would re-promote
+		// connection ops (Close, DropAll, NewTxn) onto a transaction-scoped
+		// value. Scope per entity via <X>Client.InTxn or untyped dgdao.InTxn.
+		`func (c *Client) InTxn(`,
 	} {
 		if strings.Contains(data, notWant) {
-			t.Errorf("wrapper client_gen.go must NOT depend on the schema aggregate: %q", notWant)
+			t.Errorf("wrapper client_gen.go must NOT contain: %q", notWant)
 		}
 	}
 }
 
-// TestGenerate_WrapperClientInTxn asserts that the generated top-level
-// Client.InTxn rebuilds every per-entity sub-client from the txn-scoped
-// conn (c.conn.InTxn(tx)) rather than from the original conn. This is the
-// crux of the InTxn contract: NewClient builds each entity sub-client
-// purely from its conn argument (see wrapper_entity_client.go.tmpl), so
-// passing the txn-scoped conn back through NewClient scopes both the
-// untyped operations and every typed entity accessor in one step.
+// TestGenerate_WrapperClientInTxn asserts the generated transaction surface:
+// the top-level Client keeps only the NewTxn delegator, and each per-entity
+// client emits InTxn(tx *dgdao.Txn) building a txn-scoped copy from its
+// typed.Client's InTxn — so transaction scoping is per entity, and no
+// txn-scoped value carries connection operations.
 func TestGenerate_WrapperClientInTxn(t *testing.T) {
 	_, _, entityDir := generateFromMinimalSchema(t)
 
 	data := mustReadGen(t, entityDir, "client_gen.go")
 	for _, want := range []string{
-		`func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext {`,
-		`return c.conn.NewTxnContext(ctx)`,
-		`func (c *Client) InTxn(tx *dgdao.TxnContext) *Client {`,
-		`return NewClient(c.conn.InTxn(tx))`,
+		`func (c *Client) NewTxn(ctx context.Context) *dgdao.Txn {`,
+		`return c.conn.NewTxn(ctx)`,
 	} {
 		if !strings.Contains(data, want) {
-			t.Errorf("client_gen.go missing InTxn/NewTxnContext delegator: %q\n---file---\n%s", want, data)
+			t.Errorf("client_gen.go missing NewTxn delegator: %q\n---file---\n%s", want, data)
+		}
+	}
+
+	entity := mustReadGen(t, entityDir, "studio_gen.go")
+	for _, want := range []string{
+		`func (c *StudioClient) InTxn(tx *dgdao.Txn) *StudioClient {`,
+		`return &StudioClient{typed: c.typed.InTxn(tx)}`,
+	} {
+		if !strings.Contains(entity, want) {
+			t.Errorf("studio_gen.go missing per-entity InTxn: %q\n---file---\n%s", want, entity)
 		}
 	}
 }
@@ -1212,16 +1220,17 @@ func TestGenerate_WrapperEntityClient(t *testing.T) {
 		`"github.com/dgraph-io/dgdao/typed"`,
 		`type StudioClient struct {`,
 		`typed *typed.Client[schema.Studio]`,
-		`func NewStudioClient(conn dgdao.Client) *StudioClient`,
+		`func NewStudioClient(conn dgdao.ClientCore) *StudioClient`,
 		`typed.NewClient[schema.Studio](conn)`,
 		`func (c *StudioClient) Get(ctx context.Context, uid string) (*Studio, error)`,
-		`return WrapStudio(s), nil`,
-		`func (c *StudioClient) Add(ctx context.Context, w *Studio) error`,
-		`w.Unwrap()`,
-		`func (c *StudioClient) Update(ctx context.Context, w *Studio) error`,
-		`func (c *StudioClient) Upsert(ctx context.Context, w *Studio, predicates ...string) error`,
+		`return NewStudioWithRecord(r), nil`,
+		`func (c *StudioClient) Insert(ctx context.Context, e *Studio) error`,
+		`e.Record()`,
+		`func (c *StudioClient) Update(ctx context.Context, e *Studio) error`,
+		`func (c *StudioClient) Upsert(ctx context.Context, e *Studio, predicates ...string) error`,
 		`func (c *StudioClient) Delete(ctx context.Context, uid string) error`,
 		`func (c *StudioClient) Query(ctx context.Context) *StudioQuery`,
+		`func (c *StudioClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error)`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("studio_gen.go (client content) missing: %q", want)
@@ -1256,7 +1265,7 @@ func TestGenerate_WrapperQuery(t *testing.T) {
 		`func (q *StudioQuery) Nodes() ([]*Studio, error)`,
 		`func (q *StudioQuery) First() (*Studio, error)`,
 		`func (q *StudioQuery) IterNodes() iter.Seq2[*Studio, error]`,
-		`return WrapStudio(s), nil`,
+		`return NewStudioWithRecord(r), nil`,
 	} {
 		if !strings.Contains(data, want) {
 			t.Errorf("studio_gen.go (query content) missing: %q", want)
@@ -1808,8 +1817,8 @@ func TestGenerateEmitsConsumeVerbs(t *testing.T) {
 	}
 	src := string(data)
 	for _, want := range []string{
-		"func (c *LocationClient) LoadAndDelete(ctx context.Context, key string) (*Location, bool, error)",
-		"func (c *LocationClient) LoadOrStore(ctx context.Context, w *Location) (*Location, bool, error)",
+		"func (c *LocationClient) GetAndDelete(ctx context.Context, key string) (*Location, bool, error)",
+		"func (c *LocationClient) GetOrInsert(ctx context.Context, e *Location) (*Location, bool, error)",
 	} {
 		if !strings.Contains(src, want) {
 			t.Errorf("generated location_gen.go missing:\n%s", want)

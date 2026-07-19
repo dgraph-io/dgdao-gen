@@ -1,38 +1,38 @@
 {{- $E := .Entity.Name }}
 {{- $sAlias := .SchemaAlias }}
 
-// {{ $E }} wraps a {{ $sAlias }}.{{ $E }} and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// {{ $E }} wraps a {{ $sAlias }}.{{ $E }} record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type {{ $E }} struct {
-	wrap.Wrapper[{{ $sAlias }}.{{ $E }}]
+	dgdao.Entity[{{ $sAlias }}.{{ $E }}]
 }
 
-// New{{ $E }} constructs a {{ $E }} with a fresh, empty schema struct, then
+// New{{ $E }} constructs a {{ $E }} with a fresh, empty record struct, then
 // applies the given options.
 func New{{ $E }}(opts ...typed.Option[{{ $E }}]) *{{ $E }} {
-	e := &{{ $E }}{Wrapper: wrap.WrapValue(&{{ $sAlias }}.{{ $E }}{})}
+	e := &{{ $E }}{Entity: dgdao.AsEntity(&{{ $sAlias }}.{{ $E }}{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// Wrap{{ $E }} constructs a {{ $E }} backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func Wrap{{ $E }}(s *{{ $sAlias }}.{{ $E }}, opts ...typed.Option[{{ $E }}]) *{{ $E }} {
-	e := &{{ $E }}{Wrapper: wrap.WrapValue(s)}
+// New{{ $E }}WithRecord constructs a {{ $E }} backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func New{{ $E }}WithRecord(r *{{ $sAlias }}.{{ $E }}, opts ...typed.Option[{{ $E }}]) *{{ $E }} {
+	e := &{{ $E }}{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *{{ $E }}) UID() string { return e.Unwrap().UID }
+func (e *{{ $E }}) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *{{ $E }}) SetUID(v string) { e.Unwrap().UID = v }
+func (e *{{ $E }}) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *{{ $E }}) DType() []string { return e.Unwrap().DType }
+func (e *{{ $E }}) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *{{ $E }}) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *{{ $E }}) SetDType(v []string) { e.Record().DType = v }

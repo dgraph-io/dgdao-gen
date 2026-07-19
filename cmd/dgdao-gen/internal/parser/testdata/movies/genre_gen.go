@@ -12,67 +12,66 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Genre wraps a schema.Genre and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Genre wraps a schema.Genre record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Genre struct {
-	wrap.Wrapper[schema.Genre]
+	dgdao.Entity[schema.Genre]
 }
 
-// NewGenre constructs a Genre with a fresh, empty schema struct, then
+// NewGenre constructs a Genre with a fresh, empty record struct, then
 // applies the given options.
 func NewGenre(opts ...typed.Option[Genre]) *Genre {
-	e := &Genre{Wrapper: wrap.WrapValue(&schema.Genre{})}
+	e := &Genre{Entity: dgdao.AsEntity(&schema.Genre{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapGenre constructs a Genre backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapGenre(s *schema.Genre, opts ...typed.Option[Genre]) *Genre {
-	e := &Genre{Wrapper: wrap.WrapValue(s)}
+// NewGenreWithRecord constructs a Genre backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewGenreWithRecord(r *schema.Genre, opts ...typed.Option[Genre]) *Genre {
+	e := &Genre{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Genre) UID() string { return e.Unwrap().UID }
+func (e *Genre) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Genre) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Genre) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Genre) DType() []string { return e.Unwrap().DType }
+func (e *Genre) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Genre) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Genre) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Genre) Name() string { return e.Unwrap().Name }
+func (e *Genre) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Genre) SetName(v string) { e.Unwrap().Name = v }
+func (e *Genre) SetName(v string) { e.Record().Name = v }
 
-// Films returns a freshly allocated slice of wrappers over each
+// Films returns a freshly allocated slice of entities over each
 // Film in the multi-edge.
 func (e *Genre) Films() []*Film {
-	out := make([]*Film, len(e.Unwrap().Films))
-	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Film, len(e.Record().Films))
+	for i, x := range e.Record().Films {
+		out[i] = &Film{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// FilmsSeq returns an iterator over the wrapped Films, avoiding
+// FilmsSeq returns an iterator over the Film entities, avoiding
 // the allocation in Films().
 func (e *Genre) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
-		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Films {
+			if !yield(&Film{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -81,22 +80,22 @@ func (e *Genre) FilmsSeq() iter.Seq[*Film] {
 
 // SetFilms replaces the multi-edge with the given items.
 func (e *Genre) SetFilms(items ...*Film) {
-	e.Unwrap().Films = make([]*schema.Film, len(items))
+	e.Record().Films = make([]*schema.Film, len(items))
 	for i, x := range items {
-		e.Unwrap().Films[i] = x.Unwrap()
+		e.Record().Films[i] = x.Record()
 	}
 }
 
 // AppendFilms appends items to the multi-edge.
 func (e *Genre) AppendFilms(items ...*Film) {
 	for _, x := range items {
-		e.Unwrap().Films = append(e.Unwrap().Films, x.Unwrap())
+		e.Record().Films = append(e.Record().Films, x.Record())
 	}
 }
 
 // RemoveFilms removes elements with any of the given UIDs from the multi-edge.
 func (e *Genre) RemoveFilms(uids ...string) {
-	e.Unwrap().Films = slices.DeleteFunc(e.Unwrap().Films, func(x *schema.Film) bool {
+	e.Record().Films = slices.DeleteFunc(e.Record().Films, func(x *schema.Film) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
@@ -106,41 +105,54 @@ func WithGenreName(v string) typed.Option[Genre] {
 	return func(e *Genre) { e.SetName(v) }
 }
 
-// GenreClient provides CRUD/query operations over Genre wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithGenreFilms replaces the films multi-edge on a *Genre
+// with the given items.
+func WithGenreFilms(items ...*Film) typed.Option[Genre] {
+	return func(e *Genre) { e.SetFilms(items...) }
+}
+
+// GenreClient provides CRUD/query operations over Genre entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type GenreClient struct {
 	typed *typed.Client[schema.Genre]
 }
 
-// NewGenreClient binds a GenreClient to conn.
-func NewGenreClient(conn dgdao.Client) *GenreClient {
+// NewGenreClient binds a GenreClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewGenreClient(conn dgdao.ClientCore) *GenreClient {
 	return &GenreClient{typed: typed.NewClient[schema.Genre](conn)}
+}
+
+// InTxn returns a GenreClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *GenreClient) InTxn(tx *dgdao.Txn) *GenreClient {
+	return &GenreClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Genre with the given UID and returns it wrapped.
 func (c *GenreClient) Get(ctx context.Context, uid string) (*Genre, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapGenre(s), nil
+	return NewGenreWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *GenreClient) Add(ctx context.Context, w *Genre) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *GenreClient) Insert(ctx context.Context, e *Genre) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *GenreClient) Update(ctx context.Context, w *Genre) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *GenreClient) Update(ctx context.Context, e *Genre) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *GenreClient) Upsert(ctx context.Context, w *Genre, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *GenreClient) Upsert(ctx context.Context, e *Genre, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Genre with the given UID.
@@ -148,9 +160,16 @@ func (c *GenreClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Genre.
+// Query returns an entity-side query builder for Genre.
 func (c *GenreClient) Query(ctx context.Context) *GenreQuery {
 	return &GenreQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *GenreClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Genre fields tagged
@@ -263,7 +282,7 @@ func (q *GenreQuery) Or(builders ...func(*GenreQuery)) *GenreQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Genre results.
+// Nodes executes the query and returns the Genre entities.
 func (q *GenreQuery) Nodes() ([]*Genre, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -271,31 +290,31 @@ func (q *GenreQuery) Nodes() ([]*Genre, error) {
 	}
 	out := make([]*Genre, len(recs))
 	for i := range recs {
-		out[i] = WrapGenre(&recs[i])
+		out[i] = NewGenreWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Genre, or nil if no rows matched.
+// Genre entity, or nil if no rows matched.
 func (q *GenreQuery) First() (*Genre, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapGenre(s), nil
+	return NewGenreWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Genre values, paging
+// IterNodes streams the query's results as Genre entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *GenreQuery) IterNodes() iter.Seq2[*Genre, error] {
 	return func(yield func(*Genre, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapGenre(s), nil) {
+			if !yield(NewGenreWithRecord(r), nil) {
 				return
 			}
 		}

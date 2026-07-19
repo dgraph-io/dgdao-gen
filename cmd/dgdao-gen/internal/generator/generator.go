@@ -886,10 +886,10 @@ func newGenImports() *genImports {
 // The accessors scalar-field scan is a superset of the options scan, so options
 // contributes nothing additional.
 func (g *genImports) addEntitySideImports(e model.Entity, imports map[string]string, schemaPath string) {
-	// entity fragment: typed (Option/Apply) + the wrapper base
-	// (Wrapper/WrapValue from the wrap package) + schema.
+	// entity fragment: typed (Option/Apply) + the entity base
+	// (Entity/AsEntity from dgdao core) + the record package.
+	g.mg["github.com/dgraph-io/dgdao"] = true
 	g.mg["github.com/dgraph-io/dgdao/typed"] = true
-	g.other["github.com/dgraph-io/dgdao-gen/wrap"] = ImportSpec{Path: "github.com/dgraph-io/dgdao-gen/wrap"}
 	g.other[schemaPath] = ImportSpec{Path: schemaPath}
 
 	// accessors fragment.

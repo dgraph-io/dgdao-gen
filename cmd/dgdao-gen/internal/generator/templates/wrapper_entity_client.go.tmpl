@@ -1,65 +1,76 @@
 {{- $E := .Entity.Name }}
 {{- $sAlias := .SchemaAlias }}
 
-// {{ $E }}Client provides CRUD/query operations over {{ $E }} wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// {{ $E }}Client provides CRUD/query operations over {{ $E }} entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type {{ $E }}Client struct {
 	typed *typed.Client[{{ $sAlias }}.{{ $E }}]
 }
 
-// New{{ $E }}Client binds a {{ $E }}Client to conn.
-func New{{ $E }}Client(conn dgdao.Client) *{{ $E }}Client {
+// New{{ $E }}Client binds a {{ $E }}Client to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func New{{ $E }}Client(conn dgdao.ClientCore) *{{ $E }}Client {
 	return &{{ $E }}Client{typed: typed.NewClient[{{ $sAlias }}.{{ $E }}](conn)}
+}
+
+// InTxn returns a {{ $E }}Client whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *{{ $E }}Client) InTxn(tx *dgdao.Txn) *{{ $E }}Client {
+	return &{{ $E }}Client{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the {{ $E }} with the given UID and returns it wrapped.
 func (c *{{ $E }}Client) Get(ctx context.Context, uid string) (*{{ $E }}, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return Wrap{{ $E }}(s), nil
+	return New{{ $E }}WithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *{{ $E }}Client) Add(ctx context.Context, w *{{ $E }}) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *{{ $E }}Client) Insert(ctx context.Context, e *{{ $E }}) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *{{ $E }}Client) Update(ctx context.Context, w *{{ $E }}) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *{{ $E }}Client) Update(ctx context.Context, e *{{ $E }}) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *{{ $E }}Client) Upsert(ctx context.Context, w *{{ $E }}, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *{{ $E }}Client) Upsert(ctx context.Context, e *{{ $E }}, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 {{- $uf := upsertField .Entity.Fields }}
 {{- if $uf }}
 
-// LoadAndDelete atomically reads the {{ $E }} whose {{ $uf.Predicate }} equals
+// GetAndDelete atomically reads the {{ $E }} whose {{ $uf.Predicate }} equals
 // key and deletes it, returning (nil, false, nil) when none matched.
-// Read-and-consume (compare sync.Map.LoadAndDelete).
-func (c *{{ $E }}Client) LoadAndDelete(ctx context.Context, key {{ $uf.GoType }}) (*{{ $E }}, bool, error) {
-	s, loaded, err := c.typed.LoadAndDelete(ctx, key, {{ printf "%q" $uf.Predicate }})
+// Concurrent callers racing on one key elect a single winner: exactly one
+// observes loaded=true. Use it to consume single-use records, where the read
+// must also invalidate. (cf. sync.Map.LoadAndDelete)
+func (c *{{ $E }}Client) GetAndDelete(ctx context.Context, key {{ $uf.GoType }}) (*{{ $E }}, bool, error) {
+	r, loaded, err := c.typed.GetAndDelete(ctx, key, {{ printf "%q" $uf.Predicate }})
 	if err != nil || !loaded {
 		return nil, loaded, err
 	}
-	return Wrap{{ $E }}(s), true, nil
+	return New{{ $E }}WithRecord(r), true, nil
 }
 
-// LoadOrStore stores the schema struct backing w only if no {{ $E }} already
-// has the same {{ $uf.Predicate }}, returning loaded=true when one existed.
-// Insert-if-absent (compare sync.Map.LoadOrStore).
-func (c *{{ $E }}Client) LoadOrStore(ctx context.Context, w *{{ $E }}) (*{{ $E }}, bool, error) {
-	s, loaded, err := c.typed.LoadOrStore(ctx, w.Unwrap(), {{ printf "%q" $uf.Predicate }})
+// GetOrInsert atomically gets the {{ $E }} with the same {{ $uf.Predicate }},
+// or inserts the record backing e when none exists, returning loaded=true
+// when one already existed. Concurrent callers racing on one key elect a
+// single winner: exactly one inserts. Use it for idempotent creation —
+// "ensure this record exists". (cf. sync.Map.LoadOrStore)
+func (c *{{ $E }}Client) GetOrInsert(ctx context.Context, e *{{ $E }}) (*{{ $E }}, bool, error) {
+	r, loaded, err := c.typed.GetOrInsert(ctx, e.Record(), {{ printf "%q" $uf.Predicate }})
 	if err != nil {
 		return nil, false, err
 	}
-	return Wrap{{ $E }}(s), loaded, nil
+	return New{{ $E }}WithRecord(r), loaded, nil
 }
 {{- end }}
 
@@ -68,9 +79,16 @@ func (c *{{ $E }}Client) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for {{ $E }}.
+// Query returns an entity-side query builder for {{ $E }}.
 func (c *{{ $E }}Client) Query(ctx context.Context) *{{ $E }}Query {
 	return &{{ $E }}Query{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *{{ $E }}Client) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of {{ $E }} fields tagged
