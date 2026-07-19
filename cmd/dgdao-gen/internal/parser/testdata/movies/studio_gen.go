@@ -13,202 +13,201 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 	dg "github.com/dolan-in/dgman/v2"
 )
 
-// Studio wraps a schema.Studio and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Studio wraps a schema.Studio record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Studio struct {
-	wrap.Wrapper[schema.Studio]
+	dgdao.Entity[schema.Studio]
 }
 
-// NewStudio constructs a Studio with a fresh, empty schema struct, then
+// NewStudio constructs a Studio with a fresh, empty record struct, then
 // applies the given options.
 func NewStudio(opts ...typed.Option[Studio]) *Studio {
-	e := &Studio{Wrapper: wrap.WrapValue(&schema.Studio{})}
+	e := &Studio{Entity: dgdao.AsEntity(&schema.Studio{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapStudio constructs a Studio backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapStudio(s *schema.Studio, opts ...typed.Option[Studio]) *Studio {
-	e := &Studio{Wrapper: wrap.WrapValue(s)}
+// NewStudioWithRecord constructs a Studio backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewStudioWithRecord(r *schema.Studio, opts ...typed.Option[Studio]) *Studio {
+	e := &Studio{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Studio) UID() string { return e.Unwrap().UID }
+func (e *Studio) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Studio) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Studio) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Studio) DType() []string { return e.Unwrap().DType }
+func (e *Studio) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Studio) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Studio) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Studio) Name() string { return e.Unwrap().Name }
+func (e *Studio) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Studio) SetName(v string) { e.Unwrap().Name = v }
+func (e *Studio) SetName(v string) { e.Record().Name = v }
 
 // YearFounded returns the yearFounded field.
-func (e *Studio) YearFounded() int { return e.Unwrap().YearFounded }
+func (e *Studio) YearFounded() int { return e.Record().YearFounded }
 
 // SetYearFounded sets the yearFounded field.
-func (e *Studio) SetYearFounded(v int) { e.Unwrap().YearFounded = v }
+func (e *Studio) SetYearFounded(v int) { e.Record().YearFounded = v }
 
 // Revenue returns the revenue field.
-func (e *Studio) Revenue() float64 { return e.Unwrap().Revenue }
+func (e *Studio) Revenue() float64 { return e.Record().Revenue }
 
 // SetRevenue sets the revenue field.
-func (e *Studio) SetRevenue(v float64) { e.Unwrap().Revenue = v }
+func (e *Studio) SetRevenue(v float64) { e.Record().Revenue = v }
 
 // Active returns the active field.
-func (e *Studio) Active() bool { return e.Unwrap().Active }
+func (e *Studio) Active() bool { return e.Record().Active }
 
 // SetActive sets the active field.
-func (e *Studio) SetActive(v bool) { e.Unwrap().Active = v }
+func (e *Studio) SetActive(v bool) { e.Record().Active = v }
 
 // CreatedAt returns the createdAt field.
-func (e *Studio) CreatedAt() time.Time { return e.Unwrap().CreatedAt }
+func (e *Studio) CreatedAt() time.Time { return e.Record().CreatedAt }
 
 // SetCreatedAt sets the createdAt field.
-func (e *Studio) SetCreatedAt(v time.Time) { e.Unwrap().CreatedAt = v }
+func (e *Studio) SetCreatedAt(v time.Time) { e.Record().CreatedAt = v }
 
 // Embedding returns the embedding field.
-func (e *Studio) Embedding() *dg.VectorFloat32 { return e.Unwrap().Embedding }
+func (e *Studio) Embedding() *dg.VectorFloat32 { return e.Record().Embedding }
 
 // SetEmbedding sets the embedding field.
-func (e *Studio) SetEmbedding(v *dg.VectorFloat32) { e.Unwrap().Embedding = v }
+func (e *Studio) SetEmbedding(v *dg.VectorFloat32) { e.Record().Embedding = v }
 
-// Founder returns the wrapped Director, or nil if not set.
-// Shared state: mutations through the returned wrapper write through to e.
+// Founder returns the Director entity, or nil if not set.
+// Shared state: mutations through the returned entity write through to e.
 func (e *Studio) Founder() *Director {
-	if e.Unwrap().Founder == nil {
+	if e.Record().Founder == nil {
 		return nil
 	}
-	return &Director{Wrapper: wrap.WrapValue(e.Unwrap().Founder)}
+	return &Director{Entity: dgdao.AsEntity(e.Record().Founder)}
 }
 
 // SetFounder sets or clears the Director edge.
 func (e *Studio) SetFounder(v *Director) {
 	if v == nil {
-		e.Unwrap().Founder = nil
+		e.Record().Founder = nil
 		return
 	}
-	e.Unwrap().Founder = v.Unwrap()
+	e.Record().Founder = v.Record()
 }
 
-// Headquarters returns a wrapper over the value-typed schema field. The wrapper
+// Headquarters returns an entity over the value-typed record field. The entity
 // shares state with e — mutations are visible to e immediately.
 func (e *Studio) Headquarters() *Country {
-	return &Country{Wrapper: wrap.WrapValue(&e.Unwrap().Headquarters)}
+	return &Country{Entity: dgdao.AsEntity(&e.Record().Headquarters)}
 }
 
-// SetHeadquarters copies the value from v into the schema field. Note: this is
+// SetHeadquarters copies the value from v into the record field. Note: this is
 // a value copy, so v and e.Headquarters() will not share state after this call.
 func (e *Studio) SetHeadquarters(v *Country) {
 	if v != nil {
-		e.Unwrap().Headquarters = *v.Unwrap()
+		e.Record().Headquarters = *v.Record()
 	}
 }
 
-// CurrentHead returns the wrapped first element of the singular-via-list edge,
+// CurrentHead returns the first element of the singular-via-list edge as an entity,
 // or nil if the list is empty.
 func (e *Studio) CurrentHead() *Director {
-	if len(e.Unwrap().CurrentHead) == 0 || e.Unwrap().CurrentHead[0] == nil {
+	if len(e.Record().CurrentHead) == 0 || e.Record().CurrentHead[0] == nil {
 		return nil
 	}
-	return &Director{Wrapper: wrap.WrapValue(e.Unwrap().CurrentHead[0])}
+	return &Director{Entity: dgdao.AsEntity(e.Record().CurrentHead[0])}
 }
 
 // SetCurrentHead replaces the singular-via-list edge with v, or clears it if nil.
 func (e *Studio) SetCurrentHead(v *Director) {
 	if v == nil {
-		e.Unwrap().CurrentHead = nil
+		e.Record().CurrentHead = nil
 		return
 	}
-	e.Unwrap().CurrentHead = []*schema.Director{v.Unwrap()}
+	e.Record().CurrentHead = []*schema.Director{v.Record()}
 }
 
-// Ceo returns the wrapped first element of the singular-via-list edge,
+// Ceo returns the first element of the singular-via-list edge as an entity,
 // or nil if the list is empty.
 func (e *Studio) Ceo() *Director {
-	if len(e.Unwrap().Ceo) == 0 || e.Unwrap().Ceo[0] == nil {
+	if len(e.Record().Ceo) == 0 || e.Record().Ceo[0] == nil {
 		return nil
 	}
-	return &Director{Wrapper: wrap.WrapValue(e.Unwrap().Ceo[0])}
+	return &Director{Entity: dgdao.AsEntity(e.Record().Ceo[0])}
 }
 
 // SetCeo replaces the singular-via-list edge with v, or clears it if nil.
 func (e *Studio) SetCeo(v *Director) {
 	if v == nil {
-		e.Unwrap().Ceo = nil
+		e.Record().Ceo = nil
 		return
 	}
-	e.Unwrap().Ceo = []*schema.Director{v.Unwrap()}
+	e.Record().Ceo = []*schema.Director{v.Record()}
 }
 
-// HomeBase returns the wrapped first element of the singular-via-list edge,
+// HomeBase returns the first element of the singular-via-list edge as an entity,
 // or nil if the list is empty.
 func (e *Studio) HomeBase() *Country {
-	if len(e.Unwrap().HomeBase) == 0 || e.Unwrap().HomeBase[0] == nil {
+	if len(e.Record().HomeBase) == 0 || e.Record().HomeBase[0] == nil {
 		return nil
 	}
-	return &Country{Wrapper: wrap.WrapValue(e.Unwrap().HomeBase[0])}
+	return &Country{Entity: dgdao.AsEntity(e.Record().HomeBase[0])}
 }
 
 // SetHomeBase replaces the singular-via-list edge with v, or clears it if nil.
 func (e *Studio) SetHomeBase(v *Country) {
 	if v == nil {
-		e.Unwrap().HomeBase = nil
+		e.Record().HomeBase = nil
 		return
 	}
-	e.Unwrap().HomeBase = []*schema.Country{v.Unwrap()}
+	e.Record().HomeBase = []*schema.Country{v.Record()}
 }
 
-// ParentCompany returns the wrapped first element of the singular-via-list edge,
+// ParentCompany returns the first element of the singular-via-list edge as an entity,
 // or nil if the list is empty.
 func (e *Studio) ParentCompany() *Country {
-	if len(e.Unwrap().ParentCompany) == 0 || e.Unwrap().ParentCompany[0] == nil {
+	if len(e.Record().ParentCompany) == 0 || e.Record().ParentCompany[0] == nil {
 		return nil
 	}
-	return &Country{Wrapper: wrap.WrapValue(e.Unwrap().ParentCompany[0])}
+	return &Country{Entity: dgdao.AsEntity(e.Record().ParentCompany[0])}
 }
 
 // SetParentCompany replaces the singular-via-list edge with v, or clears it if nil.
 func (e *Studio) SetParentCompany(v *Country) {
 	if v == nil {
-		e.Unwrap().ParentCompany = nil
+		e.Record().ParentCompany = nil
 		return
 	}
-	e.Unwrap().ParentCompany = []*schema.Country{v.Unwrap()}
+	e.Record().ParentCompany = []*schema.Country{v.Record()}
 }
 
-// Films returns a freshly allocated slice of wrappers over each
+// Films returns a freshly allocated slice of entities over each
 // Film in the multi-edge.
 func (e *Studio) Films() []*Film {
-	out := make([]*Film, len(e.Unwrap().Films))
-	for i, x := range e.Unwrap().Films {
-		out[i] = &Film{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Film, len(e.Record().Films))
+	for i, x := range e.Record().Films {
+		out[i] = &Film{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// FilmsSeq returns an iterator over the wrapped Films, avoiding
+// FilmsSeq returns an iterator over the Film entities, avoiding
 // the allocation in Films().
 func (e *Studio) FilmsSeq() iter.Seq[*Film] {
 	return func(yield func(*Film) bool) {
-		for _, x := range e.Unwrap().Films {
-			if !yield(&Film{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Films {
+			if !yield(&Film{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -217,42 +216,42 @@ func (e *Studio) FilmsSeq() iter.Seq[*Film] {
 
 // SetFilms replaces the multi-edge with the given items.
 func (e *Studio) SetFilms(items ...*Film) {
-	e.Unwrap().Films = make([]*schema.Film, len(items))
+	e.Record().Films = make([]*schema.Film, len(items))
 	for i, x := range items {
-		e.Unwrap().Films[i] = x.Unwrap()
+		e.Record().Films[i] = x.Record()
 	}
 }
 
 // AppendFilms appends items to the multi-edge.
 func (e *Studio) AppendFilms(items ...*Film) {
 	for _, x := range items {
-		e.Unwrap().Films = append(e.Unwrap().Films, x.Unwrap())
+		e.Record().Films = append(e.Record().Films, x.Record())
 	}
 }
 
 // RemoveFilms removes elements with any of the given UIDs from the multi-edge.
 func (e *Studio) RemoveFilms(uids ...string) {
-	e.Unwrap().Films = slices.DeleteFunc(e.Unwrap().Films, func(x *schema.Film) bool {
+	e.Record().Films = slices.DeleteFunc(e.Record().Films, func(x *schema.Film) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
-// Advisors returns a freshly allocated slice of wrappers over each
+// Advisors returns a freshly allocated slice of entities over each
 // Director in the multi-edge.
 func (e *Studio) Advisors() []*Director {
-	out := make([]*Director, len(e.Unwrap().Advisors))
-	for i, x := range e.Unwrap().Advisors {
-		out[i] = &Director{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Director, len(e.Record().Advisors))
+	for i, x := range e.Record().Advisors {
+		out[i] = &Director{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// AdvisorsSeq returns an iterator over the wrapped Directors, avoiding
+// AdvisorsSeq returns an iterator over the Director entities, avoiding
 // the allocation in Advisors().
 func (e *Studio) AdvisorsSeq() iter.Seq[*Director] {
 	return func(yield func(*Director) bool) {
-		for _, x := range e.Unwrap().Advisors {
-			if !yield(&Director{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Advisors {
+			if !yield(&Director{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -261,104 +260,104 @@ func (e *Studio) AdvisorsSeq() iter.Seq[*Director] {
 
 // SetAdvisors replaces the multi-edge with the given items.
 func (e *Studio) SetAdvisors(items ...*Director) {
-	e.Unwrap().Advisors = make([]*schema.Director, len(items))
+	e.Record().Advisors = make([]*schema.Director, len(items))
 	for i, x := range items {
-		e.Unwrap().Advisors[i] = x.Unwrap()
+		e.Record().Advisors[i] = x.Record()
 	}
 }
 
 // AppendAdvisors appends items to the multi-edge.
 func (e *Studio) AppendAdvisors(items ...*Director) {
 	for _, x := range items {
-		e.Unwrap().Advisors = append(e.Unwrap().Advisors, x.Unwrap())
+		e.Record().Advisors = append(e.Record().Advisors, x.Record())
 	}
 }
 
 // RemoveAdvisors removes elements with any of the given UIDs from the multi-edge.
 func (e *Studio) RemoveAdvisors(uids ...string) {
-	e.Unwrap().Advisors = slices.DeleteFunc(e.Unwrap().Advisors, func(x *schema.Director) bool {
+	e.Record().Advisors = slices.DeleteFunc(e.Record().Advisors, func(x *schema.Director) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
 
 // Tags returns the scalar slice.
-func (e *Studio) Tags() []string { return e.Unwrap().Tags }
+func (e *Studio) Tags() []string { return e.Record().Tags }
 
 // SetTags sets the scalar slice.
-func (e *Studio) SetTags(v []string) { e.Unwrap().Tags = v }
+func (e *Studio) SetTags(v []string) { e.Record().Tags = v }
 
 // AppendTags appends values to the scalar slice.
 func (e *Studio) AppendTags(v ...string) {
-	e.Unwrap().Tags = append(e.Unwrap().Tags, v...)
+	e.Record().Tags = append(e.Record().Tags, v...)
 }
 
 // RemoveTagsFunc removes all elements for which fn returns true.
 func (e *Studio) RemoveTagsFunc(fn func(string) bool) {
-	e.Unwrap().Tags = slices.DeleteFunc(e.Unwrap().Tags, fn)
+	e.Record().Tags = slices.DeleteFunc(e.Record().Tags, fn)
 }
 
 // Scores returns the scalar slice.
-func (e *Studio) Scores() []int { return e.Unwrap().Scores }
+func (e *Studio) Scores() []int { return e.Record().Scores }
 
 // SetScores sets the scalar slice.
-func (e *Studio) SetScores(v []int) { e.Unwrap().Scores = v }
+func (e *Studio) SetScores(v []int) { e.Record().Scores = v }
 
 // AppendScores appends values to the scalar slice.
 func (e *Studio) AppendScores(v ...int) {
-	e.Unwrap().Scores = append(e.Unwrap().Scores, v...)
+	e.Record().Scores = append(e.Record().Scores, v...)
 }
 
 // RemoveScoresFunc removes all elements for which fn returns true.
 func (e *Studio) RemoveScoresFunc(fn func(int) bool) {
-	e.Unwrap().Scores = slices.DeleteFunc(e.Unwrap().Scores, fn)
+	e.Record().Scores = slices.DeleteFunc(e.Record().Scores, fn)
 }
 
 // Weights returns the scalar slice.
-func (e *Studio) Weights() []float64 { return e.Unwrap().Weights }
+func (e *Studio) Weights() []float64 { return e.Record().Weights }
 
 // SetWeights sets the scalar slice.
-func (e *Studio) SetWeights(v []float64) { e.Unwrap().Weights = v }
+func (e *Studio) SetWeights(v []float64) { e.Record().Weights = v }
 
 // AppendWeights appends values to the scalar slice.
 func (e *Studio) AppendWeights(v ...float64) {
-	e.Unwrap().Weights = append(e.Unwrap().Weights, v...)
+	e.Record().Weights = append(e.Record().Weights, v...)
 }
 
 // RemoveWeightsFunc removes all elements for which fn returns true.
 func (e *Studio) RemoveWeightsFunc(fn func(float64) bool) {
-	e.Unwrap().Weights = slices.DeleteFunc(e.Unwrap().Weights, fn)
+	e.Record().Weights = slices.DeleteFunc(e.Record().Weights, fn)
 }
 
 // Flags returns the scalar slice.
-func (e *Studio) Flags() []bool { return e.Unwrap().Flags }
+func (e *Studio) Flags() []bool { return e.Record().Flags }
 
 // SetFlags sets the scalar slice.
-func (e *Studio) SetFlags(v []bool) { e.Unwrap().Flags = v }
+func (e *Studio) SetFlags(v []bool) { e.Record().Flags = v }
 
 // AppendFlags appends values to the scalar slice.
 func (e *Studio) AppendFlags(v ...bool) {
-	e.Unwrap().Flags = append(e.Unwrap().Flags, v...)
+	e.Record().Flags = append(e.Record().Flags, v...)
 }
 
 // RemoveFlagsFunc removes all elements for which fn returns true.
 func (e *Studio) RemoveFlagsFunc(fn func(bool) bool) {
-	e.Unwrap().Flags = slices.DeleteFunc(e.Unwrap().Flags, fn)
+	e.Record().Flags = slices.DeleteFunc(e.Record().Flags, fn)
 }
 
 // Milestones returns the scalar slice.
-func (e *Studio) Milestones() []time.Time { return e.Unwrap().Milestones }
+func (e *Studio) Milestones() []time.Time { return e.Record().Milestones }
 
 // SetMilestones sets the scalar slice.
-func (e *Studio) SetMilestones(v []time.Time) { e.Unwrap().Milestones = v }
+func (e *Studio) SetMilestones(v []time.Time) { e.Record().Milestones = v }
 
 // AppendMilestones appends values to the scalar slice.
 func (e *Studio) AppendMilestones(v ...time.Time) {
-	e.Unwrap().Milestones = append(e.Unwrap().Milestones, v...)
+	e.Record().Milestones = append(e.Record().Milestones, v...)
 }
 
 // RemoveMilestonesFunc removes all elements for which fn returns true.
 func (e *Studio) RemoveMilestonesFunc(fn func(time.Time) bool) {
-	e.Unwrap().Milestones = slices.DeleteFunc(e.Unwrap().Milestones, fn)
+	e.Record().Milestones = slices.DeleteFunc(e.Record().Milestones, fn)
 }
 
 // WithStudioName sets the name field on a *Studio.
@@ -391,41 +390,90 @@ func WithStudioEmbedding(v *dg.VectorFloat32) typed.Option[Studio] {
 	return func(e *Studio) { e.SetEmbedding(v) }
 }
 
-// StudioClient provides CRUD/query operations over Studio wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithStudioFounder sets the founder edge on a *Studio.
+func WithStudioFounder(v *Director) typed.Option[Studio] {
+	return func(e *Studio) { e.SetFounder(v) }
+}
+
+// WithStudioHeadquarters sets the headquarters edge on a *Studio (value copy).
+func WithStudioHeadquarters(v *Country) typed.Option[Studio] {
+	return func(e *Studio) { e.SetHeadquarters(v) }
+}
+
+// WithStudioCurrentHead sets the currentHead singular-via-list edge on a *Studio.
+func WithStudioCurrentHead(v *Director) typed.Option[Studio] {
+	return func(e *Studio) { e.SetCurrentHead(v) }
+}
+
+// WithStudioCeo sets the ceo singular-via-list edge on a *Studio.
+func WithStudioCeo(v *Director) typed.Option[Studio] {
+	return func(e *Studio) { e.SetCeo(v) }
+}
+
+// WithStudioHomeBase sets the homeBase singular-via-list edge on a *Studio.
+func WithStudioHomeBase(v *Country) typed.Option[Studio] {
+	return func(e *Studio) { e.SetHomeBase(v) }
+}
+
+// WithStudioParentCompany sets the parentCompany singular-via-list edge on a *Studio.
+func WithStudioParentCompany(v *Country) typed.Option[Studio] {
+	return func(e *Studio) { e.SetParentCompany(v) }
+}
+
+// WithStudioFilms replaces the films multi-edge on a *Studio
+// with the given items.
+func WithStudioFilms(items ...*Film) typed.Option[Studio] {
+	return func(e *Studio) { e.SetFilms(items...) }
+}
+
+// WithStudioAdvisors replaces the advisors multi-edge on a *Studio
+// with the given items.
+func WithStudioAdvisors(items ...*Director) typed.Option[Studio] {
+	return func(e *Studio) { e.SetAdvisors(items...) }
+}
+
+// StudioClient provides CRUD/query operations over Studio entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type StudioClient struct {
 	typed *typed.Client[schema.Studio]
 }
 
-// NewStudioClient binds a StudioClient to conn.
-func NewStudioClient(conn dgdao.Client) *StudioClient {
+// NewStudioClient binds a StudioClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewStudioClient(conn dgdao.ClientCore) *StudioClient {
 	return &StudioClient{typed: typed.NewClient[schema.Studio](conn)}
+}
+
+// InTxn returns a StudioClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *StudioClient) InTxn(tx *dgdao.Txn) *StudioClient {
+	return &StudioClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Studio with the given UID and returns it wrapped.
 func (c *StudioClient) Get(ctx context.Context, uid string) (*Studio, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapStudio(s), nil
+	return NewStudioWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *StudioClient) Add(ctx context.Context, w *Studio) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *StudioClient) Insert(ctx context.Context, e *Studio) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *StudioClient) Update(ctx context.Context, w *Studio) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *StudioClient) Update(ctx context.Context, e *Studio) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *StudioClient) Upsert(ctx context.Context, w *Studio, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *StudioClient) Upsert(ctx context.Context, e *Studio, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Studio with the given UID.
@@ -433,9 +481,16 @@ func (c *StudioClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Studio.
+// Query returns an entity-side query builder for Studio.
 func (c *StudioClient) Query(ctx context.Context) *StudioQuery {
 	return &StudioQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *StudioClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Studio fields tagged
@@ -700,7 +755,7 @@ func (q *StudioQuery) Or(builders ...func(*StudioQuery)) *StudioQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Studio results.
+// Nodes executes the query and returns the Studio entities.
 func (q *StudioQuery) Nodes() ([]*Studio, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -708,31 +763,31 @@ func (q *StudioQuery) Nodes() ([]*Studio, error) {
 	}
 	out := make([]*Studio, len(recs))
 	for i := range recs {
-		out[i] = WrapStudio(&recs[i])
+		out[i] = NewStudioWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Studio, or nil if no rows matched.
+// Studio entity, or nil if no rows matched.
 func (q *StudioQuery) First() (*Studio, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapStudio(s), nil
+	return NewStudioWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Studio values, paging
+// IterNodes streams the query's results as Studio entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *StudioQuery) IterNodes() iter.Seq2[*Studio, error] {
 	return func(yield func(*Studio, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapStudio(s), nil) {
+			if !yield(NewStudioWithRecord(r), nil) {
 				return
 			}
 		}

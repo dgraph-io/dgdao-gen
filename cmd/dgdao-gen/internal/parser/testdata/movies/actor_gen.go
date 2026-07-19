@@ -12,67 +12,66 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Actor wraps a schema.Actor and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Actor wraps a schema.Actor record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Actor struct {
-	wrap.Wrapper[schema.Actor]
+	dgdao.Entity[schema.Actor]
 }
 
-// NewActor constructs a Actor with a fresh, empty schema struct, then
+// NewActor constructs a Actor with a fresh, empty record struct, then
 // applies the given options.
 func NewActor(opts ...typed.Option[Actor]) *Actor {
-	e := &Actor{Wrapper: wrap.WrapValue(&schema.Actor{})}
+	e := &Actor{Entity: dgdao.AsEntity(&schema.Actor{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapActor constructs a Actor backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapActor(s *schema.Actor, opts ...typed.Option[Actor]) *Actor {
-	e := &Actor{Wrapper: wrap.WrapValue(s)}
+// NewActorWithRecord constructs a Actor backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewActorWithRecord(r *schema.Actor, opts ...typed.Option[Actor]) *Actor {
+	e := &Actor{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Actor) UID() string { return e.Unwrap().UID }
+func (e *Actor) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Actor) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Actor) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Actor) DType() []string { return e.Unwrap().DType }
+func (e *Actor) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Actor) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Actor) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Actor) Name() string { return e.Unwrap().Name }
+func (e *Actor) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Actor) SetName(v string) { e.Unwrap().Name = v }
+func (e *Actor) SetName(v string) { e.Record().Name = v }
 
-// Films returns a freshly allocated slice of wrappers over each
+// Films returns a freshly allocated slice of entities over each
 // Performance in the multi-edge.
 func (e *Actor) Films() []*Performance {
-	out := make([]*Performance, len(e.Unwrap().Films))
-	for i, x := range e.Unwrap().Films {
-		out[i] = &Performance{Wrapper: wrap.WrapValue(x)}
+	out := make([]*Performance, len(e.Record().Films))
+	for i, x := range e.Record().Films {
+		out[i] = &Performance{Entity: dgdao.AsEntity(x)}
 	}
 	return out
 }
 
-// FilmsSeq returns an iterator over the wrapped Performances, avoiding
+// FilmsSeq returns an iterator over the Performance entities, avoiding
 // the allocation in Films().
 func (e *Actor) FilmsSeq() iter.Seq[*Performance] {
 	return func(yield func(*Performance) bool) {
-		for _, x := range e.Unwrap().Films {
-			if !yield(&Performance{Wrapper: wrap.WrapValue(x)}) {
+		for _, x := range e.Record().Films {
+			if !yield(&Performance{Entity: dgdao.AsEntity(x)}) {
 				return
 			}
 		}
@@ -81,22 +80,22 @@ func (e *Actor) FilmsSeq() iter.Seq[*Performance] {
 
 // SetFilms replaces the multi-edge with the given items.
 func (e *Actor) SetFilms(items ...*Performance) {
-	e.Unwrap().Films = make([]*schema.Performance, len(items))
+	e.Record().Films = make([]*schema.Performance, len(items))
 	for i, x := range items {
-		e.Unwrap().Films[i] = x.Unwrap()
+		e.Record().Films[i] = x.Record()
 	}
 }
 
 // AppendFilms appends items to the multi-edge.
 func (e *Actor) AppendFilms(items ...*Performance) {
 	for _, x := range items {
-		e.Unwrap().Films = append(e.Unwrap().Films, x.Unwrap())
+		e.Record().Films = append(e.Record().Films, x.Record())
 	}
 }
 
 // RemoveFilms removes elements with any of the given UIDs from the multi-edge.
 func (e *Actor) RemoveFilms(uids ...string) {
-	e.Unwrap().Films = slices.DeleteFunc(e.Unwrap().Films, func(x *schema.Performance) bool {
+	e.Record().Films = slices.DeleteFunc(e.Record().Films, func(x *schema.Performance) bool {
 		return x != nil && slices.Contains(uids, x.UID)
 	})
 }
@@ -106,41 +105,54 @@ func WithActorName(v string) typed.Option[Actor] {
 	return func(e *Actor) { e.SetName(v) }
 }
 
-// ActorClient provides CRUD/query operations over Actor wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// WithActorFilms replaces the films multi-edge on a *Actor
+// with the given items.
+func WithActorFilms(items ...*Performance) typed.Option[Actor] {
+	return func(e *Actor) { e.SetFilms(items...) }
+}
+
+// ActorClient provides CRUD/query operations over Actor entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type ActorClient struct {
 	typed *typed.Client[schema.Actor]
 }
 
-// NewActorClient binds a ActorClient to conn.
-func NewActorClient(conn dgdao.Client) *ActorClient {
+// NewActorClient binds a ActorClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewActorClient(conn dgdao.ClientCore) *ActorClient {
 	return &ActorClient{typed: typed.NewClient[schema.Actor](conn)}
+}
+
+// InTxn returns a ActorClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *ActorClient) InTxn(tx *dgdao.Txn) *ActorClient {
+	return &ActorClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Actor with the given UID and returns it wrapped.
 func (c *ActorClient) Get(ctx context.Context, uid string) (*Actor, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapActor(s), nil
+	return NewActorWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *ActorClient) Add(ctx context.Context, w *Actor) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *ActorClient) Insert(ctx context.Context, e *Actor) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *ActorClient) Update(ctx context.Context, w *Actor) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *ActorClient) Update(ctx context.Context, e *Actor) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *ActorClient) Upsert(ctx context.Context, w *Actor, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *ActorClient) Upsert(ctx context.Context, e *Actor, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Actor with the given UID.
@@ -148,9 +160,16 @@ func (c *ActorClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Actor.
+// Query returns an entity-side query builder for Actor.
 func (c *ActorClient) Query(ctx context.Context) *ActorQuery {
 	return &ActorQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *ActorClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Actor fields tagged
@@ -263,7 +282,7 @@ func (q *ActorQuery) Or(builders ...func(*ActorQuery)) *ActorQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Actor results.
+// Nodes executes the query and returns the Actor entities.
 func (q *ActorQuery) Nodes() ([]*Actor, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -271,31 +290,31 @@ func (q *ActorQuery) Nodes() ([]*Actor, error) {
 	}
 	out := make([]*Actor, len(recs))
 	for i := range recs {
-		out[i] = WrapActor(&recs[i])
+		out[i] = NewActorWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Actor, or nil if no rows matched.
+// Actor entity, or nil if no rows matched.
 func (q *ActorQuery) First() (*Actor, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapActor(s), nil
+	return NewActorWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Actor values, paging
+// IterNodes streams the query's results as Actor entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *ActorQuery) IterNodes() iter.Seq2[*Actor, error] {
 	return func(yield func(*Actor, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapActor(s), nil) {
+			if !yield(NewActorWithRecord(r), nil) {
 				return
 			}
 		}

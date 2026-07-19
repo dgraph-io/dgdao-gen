@@ -10,91 +10,97 @@ import (
 	"github.com/dgraph-io/dgdao/typed"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Performance wraps a schema.Performance and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Performance wraps a schema.Performance record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Performance struct {
-	wrap.Wrapper[schema.Performance]
+	dgdao.Entity[schema.Performance]
 }
 
-// NewPerformance constructs a Performance with a fresh, empty schema struct, then
+// NewPerformance constructs a Performance with a fresh, empty record struct, then
 // applies the given options.
 func NewPerformance(opts ...typed.Option[Performance]) *Performance {
-	e := &Performance{Wrapper: wrap.WrapValue(&schema.Performance{})}
+	e := &Performance{Entity: dgdao.AsEntity(&schema.Performance{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapPerformance constructs a Performance backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapPerformance(s *schema.Performance, opts ...typed.Option[Performance]) *Performance {
-	e := &Performance{Wrapper: wrap.WrapValue(s)}
+// NewPerformanceWithRecord constructs a Performance backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewPerformanceWithRecord(r *schema.Performance, opts ...typed.Option[Performance]) *Performance {
+	e := &Performance{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Performance) UID() string { return e.Unwrap().UID }
+func (e *Performance) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Performance) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Performance) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Performance) DType() []string { return e.Unwrap().DType }
+func (e *Performance) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Performance) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Performance) SetDType(v []string) { e.Record().DType = v }
 
 // CharacterNote returns the characterNote field.
-func (e *Performance) CharacterNote() string { return e.Unwrap().CharacterNote }
+func (e *Performance) CharacterNote() string { return e.Record().CharacterNote }
 
 // SetCharacterNote sets the characterNote field.
-func (e *Performance) SetCharacterNote(v string) { e.Unwrap().CharacterNote = v }
+func (e *Performance) SetCharacterNote(v string) { e.Record().CharacterNote = v }
 
 // WithPerformanceCharacterNote sets the characterNote field on a *Performance.
 func WithPerformanceCharacterNote(v string) typed.Option[Performance] {
 	return func(e *Performance) { e.SetCharacterNote(v) }
 }
 
-// PerformanceClient provides CRUD/query operations over Performance wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// PerformanceClient provides CRUD/query operations over Performance entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type PerformanceClient struct {
 	typed *typed.Client[schema.Performance]
 }
 
-// NewPerformanceClient binds a PerformanceClient to conn.
-func NewPerformanceClient(conn dgdao.Client) *PerformanceClient {
+// NewPerformanceClient binds a PerformanceClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewPerformanceClient(conn dgdao.ClientCore) *PerformanceClient {
 	return &PerformanceClient{typed: typed.NewClient[schema.Performance](conn)}
+}
+
+// InTxn returns a PerformanceClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *PerformanceClient) InTxn(tx *dgdao.Txn) *PerformanceClient {
+	return &PerformanceClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Performance with the given UID and returns it wrapped.
 func (c *PerformanceClient) Get(ctx context.Context, uid string) (*Performance, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapPerformance(s), nil
+	return NewPerformanceWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *PerformanceClient) Add(ctx context.Context, w *Performance) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *PerformanceClient) Insert(ctx context.Context, e *Performance) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *PerformanceClient) Update(ctx context.Context, w *Performance) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *PerformanceClient) Update(ctx context.Context, e *Performance) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *PerformanceClient) Upsert(ctx context.Context, w *Performance, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *PerformanceClient) Upsert(ctx context.Context, e *Performance, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
 // Delete removes the Performance with the given UID.
@@ -102,9 +108,16 @@ func (c *PerformanceClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Performance.
+// Query returns an entity-side query builder for Performance.
 func (c *PerformanceClient) Query(ctx context.Context) *PerformanceQuery {
 	return &PerformanceQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *PerformanceClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Performance fields tagged
@@ -181,7 +194,7 @@ func (q *PerformanceQuery) Or(builders ...func(*PerformanceQuery)) *PerformanceQ
 	return q
 }
 
-// Nodes executes the query and returns wrapped Performance results.
+// Nodes executes the query and returns the Performance entities.
 func (q *PerformanceQuery) Nodes() ([]*Performance, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -189,31 +202,31 @@ func (q *PerformanceQuery) Nodes() ([]*Performance, error) {
 	}
 	out := make([]*Performance, len(recs))
 	for i := range recs {
-		out[i] = WrapPerformance(&recs[i])
+		out[i] = NewPerformanceWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Performance, or nil if no rows matched.
+// Performance entity, or nil if no rows matched.
 func (q *PerformanceQuery) First() (*Performance, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapPerformance(s), nil
+	return NewPerformanceWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Performance values, paging
+// IterNodes streams the query's results as Performance entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *PerformanceQuery) IterNodes() iter.Seq2[*Performance, error] {
 	return func(yield func(*Performance, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapPerformance(s), nil) {
+			if !yield(NewPerformanceWithRecord(r), nil) {
 				return
 			}
 		}

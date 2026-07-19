@@ -12,71 +12,70 @@ import (
 	"github.com/dgraph-io/dgdao/typed/filter"
 
 	"github.com/dgraph-io/dgdao-gen/cmd/dgdao-gen/internal/parser/testdata/movies/schema"
-	"github.com/dgraph-io/dgdao-gen/wrap"
 )
 
-// Location wraps a schema.Location and exposes its data through methods.
-// It embeds wrap.Wrapper, which supplies Unwrap, JSON marshaling, and
-// validation; the backing schema struct is reachable only via Unwrap().
+// Location wraps a schema.Location record and exposes its data through
+// methods. It embeds dgdao.Entity, which supplies Record, JSON marshaling,
+// and validation; the backing record struct is reachable only via Record().
 type Location struct {
-	wrap.Wrapper[schema.Location]
+	dgdao.Entity[schema.Location]
 }
 
-// NewLocation constructs a Location with a fresh, empty schema struct, then
+// NewLocation constructs a Location with a fresh, empty record struct, then
 // applies the given options.
 func NewLocation(opts ...typed.Option[Location]) *Location {
-	e := &Location{Wrapper: wrap.WrapValue(&schema.Location{})}
+	e := &Location{Entity: dgdao.AsEntity(&schema.Location{})}
 	typed.Apply(e, opts...)
 	return e
 }
 
-// WrapLocation constructs a Location backed by the given schema struct, then
-// applies the given options. The wrapper holds s directly — no defensive
-// copy, so setters mutate the caller's struct.
-func WrapLocation(s *schema.Location, opts ...typed.Option[Location]) *Location {
-	e := &Location{Wrapper: wrap.WrapValue(s)}
+// NewLocationWithRecord constructs a Location backed by the given record
+// struct, then applies the given options. The entity adopts r directly — no
+// defensive copy, so setters mutate the caller's struct.
+func NewLocationWithRecord(r *schema.Location, opts ...typed.Option[Location]) *Location {
+	e := &Location{Entity: dgdao.AsEntity(r)}
 	typed.Apply(e, opts...)
 	return e
 }
 
 // UID returns the entity's UID bookkeeping field.
-func (e *Location) UID() string { return e.Unwrap().UID }
+func (e *Location) UID() string { return e.Record().UID }
 
 // SetUID sets the entity's UID bookkeeping field.
-func (e *Location) SetUID(v string) { e.Unwrap().UID = v }
+func (e *Location) SetUID(v string) { e.Record().UID = v }
 
 // DType returns the entity's dgraph type list.
-func (e *Location) DType() []string { return e.Unwrap().DType }
+func (e *Location) DType() []string { return e.Record().DType }
 
 // SetDType sets the entity's dgraph type list.
-func (e *Location) SetDType(v []string) { e.Unwrap().DType = v }
+func (e *Location) SetDType(v []string) { e.Record().DType = v }
 
 // Name returns the name field.
-func (e *Location) Name() string { return e.Unwrap().Name }
+func (e *Location) Name() string { return e.Record().Name }
 
 // SetName sets the name field.
-func (e *Location) SetName(v string) { e.Unwrap().Name = v }
+func (e *Location) SetName(v string) { e.Record().Name = v }
 
 // Email returns the email field.
-func (e *Location) Email() string { return e.Unwrap().Email }
+func (e *Location) Email() string { return e.Record().Email }
 
 // SetEmail sets the email field.
-func (e *Location) SetEmail(v string) { e.Unwrap().Email = v }
+func (e *Location) SetEmail(v string) { e.Record().Email = v }
 
 // Loc returns the scalar slice.
-func (e *Location) Loc() []float64 { return e.Unwrap().Loc }
+func (e *Location) Loc() []float64 { return e.Record().Loc }
 
 // SetLoc sets the scalar slice.
-func (e *Location) SetLoc(v []float64) { e.Unwrap().Loc = v }
+func (e *Location) SetLoc(v []float64) { e.Record().Loc = v }
 
 // AppendLoc appends values to the scalar slice.
 func (e *Location) AppendLoc(v ...float64) {
-	e.Unwrap().Loc = append(e.Unwrap().Loc, v...)
+	e.Record().Loc = append(e.Record().Loc, v...)
 }
 
 // RemoveLocFunc removes all elements for which fn returns true.
 func (e *Location) RemoveLocFunc(fn func(float64) bool) {
-	e.Unwrap().Loc = slices.DeleteFunc(e.Unwrap().Loc, fn)
+	e.Record().Loc = slices.DeleteFunc(e.Record().Loc, fn)
 }
 
 // WithLocationName sets the name field on a *Location.
@@ -89,63 +88,74 @@ func WithLocationEmail(v string) typed.Option[Location] {
 	return func(e *Location) { e.SetEmail(v) }
 }
 
-// LocationClient provides CRUD/query operations over Location wrapper values.
-// It composes over a typed.Client bound to the schema struct: reads wrap the
-// schema result, writes forward the wrapper's backing struct.
+// LocationClient provides CRUD/query operations over Location entity values.
+// It composes over a typed.Client bound to the record struct: reads wrap the
+// record result, writes forward the entity's backing record.
 type LocationClient struct {
 	typed *typed.Client[schema.Location]
 }
 
-// NewLocationClient binds a LocationClient to conn.
-func NewLocationClient(conn dgdao.Client) *LocationClient {
+// NewLocationClient binds a LocationClient to conn — the connection client or
+// a transaction-scoped *dgdao.ClientTxn.
+func NewLocationClient(conn dgdao.ClientCore) *LocationClient {
 	return &LocationClient{typed: typed.NewClient[schema.Location](conn)}
+}
+
+// InTxn returns a LocationClient whose reads and writes run within tx: reads
+// join tx's read-set, writes stage on tx and land only on tx.Commit.
+func (c *LocationClient) InTxn(tx *dgdao.Txn) *LocationClient {
+	return &LocationClient{typed: c.typed.InTxn(tx)}
 }
 
 // Get loads the Location with the given UID and returns it wrapped.
 func (c *LocationClient) Get(ctx context.Context, uid string) (*Location, error) {
-	s, err := c.typed.Get(ctx, uid)
+	r, err := c.typed.Get(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	return WrapLocation(s), nil
+	return NewLocationWithRecord(r), nil
 }
 
-// Add inserts the schema struct backing w.
-func (c *LocationClient) Add(ctx context.Context, w *Location) error {
-	return c.typed.Add(ctx, w.Unwrap())
+// Insert inserts the record struct backing e.
+func (c *LocationClient) Insert(ctx context.Context, e *Location) error {
+	return c.typed.Insert(ctx, e.Record())
 }
 
-// Update modifies the schema struct backing w (must have UID set).
-func (c *LocationClient) Update(ctx context.Context, w *Location) error {
-	return c.typed.Update(ctx, w.Unwrap())
+// Update modifies the record struct backing e (must have UID set).
+func (c *LocationClient) Update(ctx context.Context, e *Location) error {
+	return c.typed.Update(ctx, e.Record())
 }
 
-// Upsert inserts or updates the schema struct backing w, matching against
+// Upsert inserts or updates the record struct backing e, matching against
 // predicates. With no predicates, the first dgraph:"upsert" field wins.
-func (c *LocationClient) Upsert(ctx context.Context, w *Location, predicates ...string) error {
-	return c.typed.Upsert(ctx, w.Unwrap(), predicates...)
+func (c *LocationClient) Upsert(ctx context.Context, e *Location, predicates ...string) error {
+	return c.typed.Upsert(ctx, e.Record(), predicates...)
 }
 
-// LoadAndDelete atomically reads the Location whose email equals
+// GetAndDelete atomically reads the Location whose email equals
 // key and deletes it, returning (nil, false, nil) when none matched.
-// Read-and-consume (compare sync.Map.LoadAndDelete).
-func (c *LocationClient) LoadAndDelete(ctx context.Context, key string) (*Location, bool, error) {
-	s, loaded, err := c.typed.LoadAndDelete(ctx, key, "email")
+// Concurrent callers racing on one key elect a single winner: exactly one
+// observes loaded=true. Use it to consume single-use records, where the read
+// must also invalidate. (cf. sync.Map.LoadAndDelete)
+func (c *LocationClient) GetAndDelete(ctx context.Context, key string) (*Location, bool, error) {
+	r, loaded, err := c.typed.GetAndDelete(ctx, key, "email")
 	if err != nil || !loaded {
 		return nil, loaded, err
 	}
-	return WrapLocation(s), true, nil
+	return NewLocationWithRecord(r), true, nil
 }
 
-// LoadOrStore stores the schema struct backing w only if no Location already
-// has the same email, returning loaded=true when one existed.
-// Insert-if-absent (compare sync.Map.LoadOrStore).
-func (c *LocationClient) LoadOrStore(ctx context.Context, w *Location) (*Location, bool, error) {
-	s, loaded, err := c.typed.LoadOrStore(ctx, w.Unwrap(), "email")
+// GetOrInsert atomically gets the Location with the same email,
+// or inserts the record backing e when none exists, returning loaded=true
+// when one already existed. Concurrent callers racing on one key elect a
+// single winner: exactly one inserts. Use it for idempotent creation —
+// "ensure this record exists". (cf. sync.Map.LoadOrStore)
+func (c *LocationClient) GetOrInsert(ctx context.Context, e *Location) (*Location, bool, error) {
+	r, loaded, err := c.typed.GetOrInsert(ctx, e.Record(), "email")
 	if err != nil {
 		return nil, false, err
 	}
-	return WrapLocation(s), loaded, nil
+	return NewLocationWithRecord(r), loaded, nil
 }
 
 // Delete removes the Location with the given UID.
@@ -153,9 +163,16 @@ func (c *LocationClient) Delete(ctx context.Context, uid string) error {
 	return c.typed.Delete(ctx, uid)
 }
 
-// Query returns a wrapper-side query builder for Location.
+// Query returns an entity-side query builder for Location.
 func (c *LocationClient) Query(ctx context.Context) *LocationQuery {
 	return &LocationQuery{typed: c.typed.Query(ctx)}
+}
+
+// QueryRaw executes a raw DQL query with optional variables on the backing
+// conn. On a transaction-scoped client the query reads within the
+// transaction (read-your-writes).
+func (c *LocationClient) QueryRaw(ctx context.Context, q string, vars map[string]string) ([]byte, error) {
+	return c.typed.QueryRaw(ctx, q, vars)
 }
 
 // FulltextFields returns the DQL predicate names of Location fields tagged
@@ -258,7 +275,7 @@ func (q *LocationQuery) Or(builders ...func(*LocationQuery)) *LocationQuery {
 	return q
 }
 
-// Nodes executes the query and returns wrapped Location results.
+// Nodes executes the query and returns the Location entities.
 func (q *LocationQuery) Nodes() ([]*Location, error) {
 	recs, err := q.typed.Nodes()
 	if err != nil {
@@ -266,31 +283,31 @@ func (q *LocationQuery) Nodes() ([]*Location, error) {
 	}
 	out := make([]*Location, len(recs))
 	for i := range recs {
-		out[i] = WrapLocation(&recs[i])
+		out[i] = NewLocationWithRecord(&recs[i])
 	}
 	return out, nil
 }
 
 // First executes the query with an implicit Limit(1) and returns the first
-// wrapped Location, or nil if no rows matched.
+// Location entity, or nil if no rows matched.
 func (q *LocationQuery) First() (*Location, error) {
-	s, err := q.typed.First()
-	if err != nil || s == nil {
+	r, err := q.typed.First()
+	if err != nil || r == nil {
 		return nil, err
 	}
-	return WrapLocation(s), nil
+	return NewLocationWithRecord(r), nil
 }
 
-// IterNodes streams the query's results as wrapped Location values, paging
+// IterNodes streams the query's results as Location entities, paging
 // transparently. It is a terminal operation; see typed.Query.IterNodes.
 func (q *LocationQuery) IterNodes() iter.Seq2[*Location, error] {
 	return func(yield func(*Location, error) bool) {
-		for s, err := range q.typed.IterNodes() {
+		for r, err := range q.typed.IterNodes() {
 			if err != nil {
 				yield(nil, err)
 				return
 			}
-			if !yield(WrapLocation(s), nil) {
+			if !yield(NewLocationWithRecord(r), nil) {
 				return
 			}
 		}

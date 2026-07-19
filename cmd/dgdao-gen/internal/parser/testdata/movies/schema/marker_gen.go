@@ -2,10 +2,10 @@
 
 package schema
 
-// SchemaTypeName returns the canonical entity name for Actor.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Actor) SchemaTypeName() string { return "Actor" }
+// RecordTypeName returns the canonical entity name for Actor.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Actor) RecordTypeName() string { return "Actor" }
 
 // SchemaPredicates returns the json predicate names declared on Actor,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -22,10 +22,10 @@ func (*Actor) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Actor) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for ContentRating.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*ContentRating) SchemaTypeName() string { return "ContentRating" }
+// RecordTypeName returns the canonical entity name for ContentRating.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*ContentRating) RecordTypeName() string { return "ContentRating" }
 
 // SchemaPredicates returns the json predicate names declared on ContentRating,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -42,10 +42,10 @@ func (*ContentRating) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*ContentRating) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Country.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Country) SchemaTypeName() string { return "Country" }
+// RecordTypeName returns the canonical entity name for Country.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Country) RecordTypeName() string { return "Country" }
 
 // SchemaPredicates returns the json predicate names declared on Country,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -62,10 +62,10 @@ func (*Country) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Country) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Director.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Director) SchemaTypeName() string { return "Director" }
+// RecordTypeName returns the canonical entity name for Director.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Director) RecordTypeName() string { return "Director" }
 
 // SchemaPredicates returns the json predicate names declared on Director,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -82,10 +82,10 @@ func (*Director) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Director) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Film.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Film) SchemaTypeName() string { return "Film" }
+// RecordTypeName returns the canonical entity name for Film.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Film) RecordTypeName() string { return "Film" }
 
 // SchemaPredicates returns the json predicate names declared on Film,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -109,10 +109,10 @@ func (*Film) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Film) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Genre.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Genre) SchemaTypeName() string { return "Genre" }
+// RecordTypeName returns the canonical entity name for Genre.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Genre) RecordTypeName() string { return "Genre" }
 
 // SchemaPredicates returns the json predicate names declared on Genre,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -129,10 +129,10 @@ func (*Genre) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Genre) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Location.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Location) SchemaTypeName() string { return "Location" }
+// RecordTypeName returns the canonical entity name for Location.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Location) RecordTypeName() string { return "Location" }
 
 // SchemaPredicates returns the json predicate names declared on Location,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -150,10 +150,10 @@ func (*Location) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Location) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Performance.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Performance) SchemaTypeName() string { return "Performance" }
+// RecordTypeName returns the canonical entity name for Performance.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Performance) RecordTypeName() string { return "Performance" }
 
 // SchemaPredicates returns the json predicate names declared on Performance,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -169,10 +169,10 @@ func (*Performance) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Performance) SchemaSearchPredicate() string { return "" }
 
-// SchemaTypeName returns the canonical entity name for Rating.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Rating) SchemaTypeName() string { return "Rating" }
+// RecordTypeName returns the canonical entity name for Rating.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Rating) RecordTypeName() string { return "Rating" }
 
 // SchemaPredicates returns the json predicate names declared on Rating,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
@@ -189,10 +189,10 @@ func (*Rating) SchemaPredicates() []string {
 // if none. Used by tooling that needs a default search target.
 func (*Rating) SchemaSearchPredicate() string { return "name" }
 
-// SchemaTypeName returns the canonical entity name for Studio.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*Studio) SchemaTypeName() string { return "Studio" }
+// RecordTypeName returns the canonical entity name for Studio.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*Studio) RecordTypeName() string { return "Studio" }
 
 // SchemaPredicates returns the json predicate names declared on Studio,
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches

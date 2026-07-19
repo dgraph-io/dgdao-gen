@@ -86,14 +86,10 @@ func (c *Client) WithRetry(ctx context.Context, policy dgdao.RetryPolicy, fn fun
 	return c.conn.WithRetry(ctx, policy, fn)
 }
 
-// NewTxnContext opens a read-write transaction on the underlying client.
-func (c *Client) NewTxnContext(ctx context.Context) *dgdao.TxnContext {
-	return c.conn.NewTxnContext(ctx)
-}
-
-// InTxn returns a Client whose untyped operations and every per-entity
-// sub-client run inside tx. Reads join the transaction's read-set; writes
-// stage on it; commit via tx.Commit().
-func (c *Client) InTxn(tx *dgdao.TxnContext) *Client {
-	return NewClient(c.conn.InTxn(tx))
+// NewTxn opens a read-write transaction on the underlying client. Scope work
+// into it per entity via the sub-clients' InTxn (for example
+// c.Actor.InTxn(tx)), or untyped via dgdao.InTxn(tx);
+// commit via tx.Commit().
+func (c *Client) NewTxn(ctx context.Context) *dgdao.Txn {
+	return c.conn.NewTxn(ctx)
 }

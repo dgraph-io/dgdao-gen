@@ -80,8 +80,8 @@ func addFilm(ctx context.Context, t *testing.T, client *movies.Client, name stri
 		movies.WithFilmName(name),
 		movies.WithFilmInitialReleaseDate(time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)),
 	)
-	if err := client.Film.Add(ctx, w); err != nil {
-		t.Fatalf("Film.Add(%q): %v", name, err)
+	if err := client.Film.Insert(ctx, w); err != nil {
+		t.Fatalf("Film.Insert(%q): %v", name, err)
 	}
 }
 
@@ -225,13 +225,13 @@ func TestWrapperQuery_SingleQuery(t *testing.T) {
 	var queriesExecuted int
 	client := movies.NewClient(newCountingConn(t, &queriesExecuted))
 
-	// Insert via WrapFilm to also exercise that constructor path.
+	// Insert via NewFilmWithRecord to also exercise that constructor path.
 	for i := range 2 {
-		w := movies.WrapFilm(&moviesSchema.Film{
+		w := movies.NewFilmWithRecord(&moviesSchema.Film{
 			Name:               "w",
 			InitialReleaseDate: time.Date(1990+i, 1, 1, 0, 0, 0, 0, time.UTC),
 		})
-		if err := client.Film.Add(ctx, w); err != nil {
+		if err := client.Film.Insert(ctx, w); err != nil {
 			t.Fatalf("Film.Add %d: %v", i, err)
 		}
 	}
@@ -309,8 +309,8 @@ func TestWrapperQuery_WhereEdgeFiltersByEdgeTarget(t *testing.T) {
 		"E.T.":      {Name: "E.T."},
 	}
 	for name, f := range films {
-		if err := client.Film.Add(ctx, movies.WrapFilm(f)); err != nil {
-			t.Fatalf("Film.Add(%q): %v", name, err)
+		if err := client.Film.Insert(ctx, movies.NewFilmWithRecord(f)); err != nil {
+			t.Fatalf("Film.Insert(%q): %v", name, err)
 		}
 	}
 	directors := []*moviesSchema.Director{
@@ -318,8 +318,8 @@ func TestWrapperQuery_WhereEdgeFiltersByEdgeTarget(t *testing.T) {
 		{Name: "Steven Spielberg", Films: []*moviesSchema.Film{films["Jaws"], films["E.T."]}},
 	}
 	for _, d := range directors {
-		if err := client.Director.Add(ctx, movies.WrapDirector(d)); err != nil {
-			t.Fatalf("Director.Add(%q): %v", d.Name, err)
+		if err := client.Director.Insert(ctx, movies.NewDirectorWithRecord(d)); err != nil {
+			t.Fatalf("Director.Insert(%q): %v", d.Name, err)
 		}
 	}
 
@@ -365,8 +365,8 @@ func TestWrapperQuery_WhereEdgeByComposesTypedFilter(t *testing.T) {
 		"Jaws":      {Name: "Jaws"},
 	}
 	for name, f := range films {
-		if err := client.Film.Add(ctx, movies.WrapFilm(f)); err != nil {
-			t.Fatalf("Film.Add(%q): %v", name, err)
+		if err := client.Film.Insert(ctx, movies.NewFilmWithRecord(f)); err != nil {
+			t.Fatalf("Film.Insert(%q): %v", name, err)
 		}
 	}
 	directors := []*moviesSchema.Director{
@@ -374,8 +374,8 @@ func TestWrapperQuery_WhereEdgeByComposesTypedFilter(t *testing.T) {
 		{Name: "Steven Spielberg", Films: []*moviesSchema.Film{films["Jaws"]}},
 	}
 	for _, d := range directors {
-		if err := client.Director.Add(ctx, movies.WrapDirector(d)); err != nil {
-			t.Fatalf("Director.Add(%q): %v", d.Name, err)
+		if err := client.Director.Insert(ctx, movies.NewDirectorWithRecord(d)); err != nil {
+			t.Fatalf("Director.Insert(%q): %v", d.Name, err)
 		}
 	}
 
@@ -399,8 +399,8 @@ func TestWrapperQuery_Or(t *testing.T) {
 	client := movies.NewClient(newConn(t))
 
 	for _, name := range []string{"Inception", "Dunkirk", "Jaws"} {
-		if err := client.Film.Add(ctx, movies.WrapFilm(&moviesSchema.Film{Name: name})); err != nil {
-			t.Fatalf("Film.Add(%q): %v", name, err)
+		if err := client.Film.Insert(ctx, movies.NewFilmWithRecord(&moviesSchema.Film{Name: name})); err != nil {
+			t.Fatalf("Film.Insert(%q): %v", name, err)
 		}
 	}
 

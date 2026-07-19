@@ -2,10 +2,10 @@ package {{ .Name }}
 
 {{- range .Entities }}
 
-// SchemaTypeName returns the canonical entity name for {{ .Name }}.
-// This is the value dgdao.Schema requires; it lets dgdao.Client
-// recognize wrapper types via reflection-based Unwrap dispatch.
-func (*{{ .Name }}) SchemaTypeName() string { return {{ printf "%q" .Name }} }
+// RecordTypeName returns the canonical entity name for {{ .Name }}.
+// This is the value dgdao.Record requires; it lets dgdao.Client
+// recognize entity types via reflection-based Record dispatch.
+func (*{{ .Name }}) RecordTypeName() string { return {{ printf "%q" .Name }} }
 
 // SchemaPredicates returns the json predicate names declared on {{ .Name }},
 // excluding the uid and dgraph.type bookkeeping predicates. Order matches
